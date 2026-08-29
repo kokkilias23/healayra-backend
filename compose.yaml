@@ -1,9 +1,18 @@
 services:
   postgres:
-    image: 'postgres:latest'
+    image: postgres:latest
+    container_name: healayra-postgres
+
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      POSTGRES_DB: healayra
+      POSTGRES_USER: healayra_user
+      POSTGRES_PASSWORD: healayra_pass
+
     ports:
-      - '5432'
+      - "5432:5432"
+
+    volumes:
+      - healayra_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  healayra_postgres_data:
