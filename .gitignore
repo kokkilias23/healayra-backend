@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Passwords_users ###
+/Pass.txt
