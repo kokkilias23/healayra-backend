@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 @Builder
 public class User {
 
+    // Primary key generated automatically by PostgreSQL
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
