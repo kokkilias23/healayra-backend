@@ -1,4 +1,4 @@
-package gr.healayra.backend.security;
+package gr.healayra.backend.authentication;
 
 import gr.healayra.backend.model.User;
 import gr.healayra.backend.repository.UserRepository;

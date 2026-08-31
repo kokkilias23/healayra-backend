@@ -1,4 +1,4 @@
-package gr.healayra.backend.service;
+package gr.healayra.backend.authentication;
 
 import gr.healayra.backend.dto.auth.AuthResponseDTO;
 import gr.healayra.backend.dto.auth.LoginRequestDTO;

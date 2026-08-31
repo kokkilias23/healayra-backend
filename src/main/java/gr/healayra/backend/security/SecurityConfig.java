@@ -1,5 +1,6 @@
 package gr.healayra.backend.security;
 
+import gr.healayra.backend.authentication.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

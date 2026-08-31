@@ -1,5 +1,7 @@
 package gr.healayra.backend.security;
 
+import gr.healayra.backend.authentication.CustomUserDetailsService;
+import gr.healayra.backend.authentication.JwtService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

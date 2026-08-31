@@ -1,12 +1,10 @@
-package gr.healayra.backend.service;
+package gr.healayra.backend.authentication;
 
 import gr.healayra.backend.dto.auth.AuthResponseDTO;
 import gr.healayra.backend.dto.auth.LoginRequestDTO;
 import gr.healayra.backend.dto.auth.RegisterRequestDTO;
 import gr.healayra.backend.model.User;
 import gr.healayra.backend.repository.UserRepository;
-import gr.healayra.backend.security.CustomUserDetailsService;
-import gr.healayra.backend.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

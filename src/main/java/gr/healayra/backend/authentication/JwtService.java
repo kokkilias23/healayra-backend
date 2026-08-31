@@ -1,4 +1,4 @@
-package gr.healayra.backend.security;
+package gr.healayra.backend.authentication;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
