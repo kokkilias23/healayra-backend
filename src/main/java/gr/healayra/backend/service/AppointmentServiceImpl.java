@@ -1,4 +1,4 @@
-package gr.healayra.backend.service.impl;
+package gr.healayra.backend.service;
 
 import gr.healayra.backend.dto.appointment.AppointmentCreateDTO;
 import gr.healayra.backend.dto.appointment.AppointmentReadOnlyDTO;
@@ -10,7 +10,6 @@ import gr.healayra.backend.model.Doctor;
 import gr.healayra.backend.repository.AppointmentRepository;
 import gr.healayra.backend.repository.ClientRepository;
 import gr.healayra.backend.repository.DoctorRepository;
-import gr.healayra.backend.service.IAppointmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

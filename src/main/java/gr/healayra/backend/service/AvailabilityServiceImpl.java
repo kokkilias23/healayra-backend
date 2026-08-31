@@ -1,4 +1,4 @@
-package gr.healayra.backend.service.impl;
+package gr.healayra.backend.service;
 
 import gr.healayra.backend.dto.availability.AvailabilityCreateDTO;
 import gr.healayra.backend.dto.availability.AvailabilityReadOnlyDTO;
@@ -7,7 +7,6 @@ import gr.healayra.backend.model.Availability;
 import gr.healayra.backend.model.Doctor;
 import gr.healayra.backend.repository.AvailabilityRepository;
 import gr.healayra.backend.repository.DoctorRepository;
-import gr.healayra.backend.service.IAvailabilityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

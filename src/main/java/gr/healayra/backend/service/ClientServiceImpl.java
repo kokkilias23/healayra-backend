@@ -1,4 +1,4 @@
-package gr.healayra.backend.service.impl;
+package gr.healayra.backend.service;
 
 import gr.healayra.backend.dto.client.ClientCreateDTO;
 import gr.healayra.backend.dto.client.ClientReadOnlyDTO;
@@ -7,7 +7,6 @@ import gr.healayra.backend.model.Client;
 import gr.healayra.backend.model.User;
 import gr.healayra.backend.repository.ClientRepository;
 import gr.healayra.backend.repository.UserRepository;
-import gr.healayra.backend.service.IClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
