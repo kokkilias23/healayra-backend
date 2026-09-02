@@ -5,8 +5,10 @@ import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.auth.AuthResponseDTO;
 import gr.healayra.backend.dto.auth.LoginRequestDTO;
 import gr.healayra.backend.dto.auth.RegisterRequestDTO;
+import gr.healayra.backend.model.Client;
 import gr.healayra.backend.model.Role;
 import gr.healayra.backend.model.User;
+import gr.healayra.backend.repository.ClientRepository;
 import gr.healayra.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,18 +16,21 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements IAuthService {
 
     private final UserRepository userRepository;
+    private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtService jwtService;
 
     @Override
+    @Transactional
     public AuthResponseDTO register(RegisterRequestDTO dto) {
 
         if (userRepository.existsByEmail(dto.email())) {
@@ -40,7 +45,17 @@ public class AuthServiceImpl implements IAuthService {
                 .role(Role.CLIENT)
                 .build();
 
-        User savedUser = userRepository.save(user);
+        User savedUser =
+                userRepository.save(user);
+
+        Client client = Client.builder()
+                .user(savedUser)
+                .firstName(dto.firstName())
+                .lastName(dto.lastName())
+                .phone(dto.phone())
+                .build();
+
+        clientRepository.save(client);
 
         UserDetails userDetails =
                 customUserDetailsService.loadUserByUsername(

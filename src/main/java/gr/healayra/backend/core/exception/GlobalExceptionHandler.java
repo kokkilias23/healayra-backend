@@ -1,6 +1,7 @@
 package gr.healayra.backend.core.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -21,6 +23,12 @@ public class GlobalExceptionHandler {
             ResourceNotFoundException exception,
             HttpServletRequest request
     ) {
+
+        log.warn(
+                "Resource not found for request={} with message={}",
+                request.getRequestURI(),
+                exception.getMessage()
+        );
 
         return buildResponse(
                 HttpStatus.NOT_FOUND,
@@ -36,6 +44,12 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
 
+        log.warn(
+                "Conflict for request={} with message={}",
+                request.getRequestURI(),
+                exception.getMessage()
+        );
+
         return buildResponse(
                 HttpStatus.CONFLICT,
                 exception.getMessage(),
@@ -50,6 +64,12 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
 
+        log.warn(
+                "Bad request={} with message={}",
+                request.getRequestURI(),
+                exception.getMessage()
+        );
+
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 exception.getMessage(),
@@ -63,6 +83,11 @@ public class GlobalExceptionHandler {
             AuthenticationException exception,
             HttpServletRequest request
     ) {
+
+        log.warn(
+                "Authentication failed for request={}",
+                request.getRequestURI()
+        );
 
         return buildResponse(
                 HttpStatus.UNAUTHORIZED,
@@ -90,6 +115,12 @@ public class GlobalExceptionHandler {
                         )
                 );
 
+        log.warn(
+                "Validation failed for request={} with errors={}",
+                request.getRequestURI(),
+                validationErrors
+        );
+
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 "Validation failed",
@@ -104,6 +135,11 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
 
+        log.warn(
+                "Invalid request body for request={}",
+                request.getRequestURI()
+        );
+
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 "Invalid request body",
@@ -117,6 +153,12 @@ public class GlobalExceptionHandler {
             Exception exception,
             HttpServletRequest request
     ) {
+
+        log.error(
+                "Unexpected error for request={}",
+                request.getRequestURI(),
+                exception
+        );
 
         return buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
