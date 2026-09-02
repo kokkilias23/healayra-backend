@@ -1,5 +1,7 @@
 package gr.healayra.backend.service;
 
+import gr.healayra.backend.core.exception.ConflictException;
+import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.appointment.AppointmentCreateDTO;
 import gr.healayra.backend.dto.appointment.AppointmentReadOnlyDTO;
 import gr.healayra.backend.dto.appointment.AppointmentUpdateStatusDTO;
@@ -24,22 +26,35 @@ public class AppointmentServiceImpl implements IAppointmentService {
     private final ClientRepository clientRepository;
 
     @Override
-    public AppointmentReadOnlyDTO createAppointment(AppointmentCreateDTO dto) {
+    public AppointmentReadOnlyDTO createAppointment(
+            AppointmentCreateDTO dto
+    ) {
 
         Doctor doctor = doctorRepository.findById(dto.doctorId())
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
-
-        Client client = clientRepository.findById(dto.clientId())
-                .orElseThrow(() -> new RuntimeException("Client not found"));
-
-        boolean alreadyBooked =
-                appointmentRepository.existsByDoctorIdAndAppointmentTime(
-                        dto.doctorId(),
-                        dto.appointmentTime()
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Doctor not found"
+                        )
                 );
 
+        Client client = clientRepository.findById(dto.clientId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Client not found"
+                        )
+                );
+
+        boolean alreadyBooked =
+                appointmentRepository
+                        .existsByDoctorIdAndAppointmentTime(
+                                dto.doctorId(),
+                                dto.appointmentTime()
+                        );
+
         if (alreadyBooked) {
-            throw new RuntimeException("Appointment slot already booked");
+            throw new ConflictException(
+                    "Appointment slot already booked"
+            );
         }
 
         Appointment appointment = Appointment.builder()
@@ -56,16 +71,25 @@ public class AppointmentServiceImpl implements IAppointmentService {
     }
 
     @Override
-    public AppointmentReadOnlyDTO getAppointmentById(Long id) {
+    public AppointmentReadOnlyDTO getAppointmentById(
+            Long id
+    ) {
 
-        Appointment appointment = appointmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        Appointment appointment =
+                appointmentRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Appointment not found"
+                                )
+                        );
 
         return mapToReadOnlyDTO(appointment);
     }
 
     @Override
-    public List<AppointmentReadOnlyDTO> getAppointmentsByDoctor(Long doctorId) {
+    public List<AppointmentReadOnlyDTO> getAppointmentsByDoctor(
+            Long doctorId
+    ) {
 
         return appointmentRepository.findByDoctorId(doctorId)
                 .stream()
@@ -74,7 +98,9 @@ public class AppointmentServiceImpl implements IAppointmentService {
     }
 
     @Override
-    public List<AppointmentReadOnlyDTO> getAppointmentsByClient(Long clientId) {
+    public List<AppointmentReadOnlyDTO> getAppointmentsByClient(
+            Long clientId
+    ) {
 
         return appointmentRepository.findByClientId(clientId)
                 .stream()
@@ -88,8 +114,13 @@ public class AppointmentServiceImpl implements IAppointmentService {
             AppointmentUpdateStatusDTO dto
     ) {
 
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        Appointment appointment =
+                appointmentRepository.findById(appointmentId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Appointment not found"
+                                )
+                        );
 
         appointment.setStatus(dto.status());
 
@@ -99,7 +130,9 @@ public class AppointmentServiceImpl implements IAppointmentService {
         return mapToReadOnlyDTO(updatedAppointment);
     }
 
-    private AppointmentReadOnlyDTO mapToReadOnlyDTO(Appointment appointment) {
+    private AppointmentReadOnlyDTO mapToReadOnlyDTO(
+            Appointment appointment
+    ) {
 
         return new AppointmentReadOnlyDTO(
                 appointment.getId(),

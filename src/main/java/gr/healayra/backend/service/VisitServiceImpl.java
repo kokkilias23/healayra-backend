@@ -1,5 +1,6 @@
 package gr.healayra.backend.service;
 
+import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.visit.VisitCreateDTO;
 import gr.healayra.backend.dto.visit.VisitReadOnlyDTO;
 import gr.healayra.backend.model.Client;
@@ -22,13 +23,23 @@ public class VisitServiceImpl implements IVisitService {
     private final ClientRepository clientRepository;
 
     @Override
-    public VisitReadOnlyDTO createVisit(VisitCreateDTO dto) {
+    public VisitReadOnlyDTO createVisit(
+            VisitCreateDTO dto
+    ) {
 
         Doctor doctor = doctorRepository.findById(dto.doctorId())
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Doctor not found"
+                        )
+                );
 
         Client client = clientRepository.findById(dto.clientId())
-                .orElseThrow(() -> new RuntimeException("Client not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Client not found"
+                        )
+                );
 
         Visit visit = Visit.builder()
                 .doctor(doctor)
@@ -37,22 +48,31 @@ public class VisitServiceImpl implements IVisitService {
                 .service(dto.service())
                 .build();
 
-        Visit savedVisit = visitRepository.save(visit);
+        Visit savedVisit =
+                visitRepository.save(visit);
 
         return mapToReadOnlyDTO(savedVisit);
     }
 
     @Override
-    public VisitReadOnlyDTO getVisitById(Long id) {
+    public VisitReadOnlyDTO getVisitById(
+            Long id
+    ) {
 
         Visit visit = visitRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Visit not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Visit not found"
+                        )
+                );
 
         return mapToReadOnlyDTO(visit);
     }
 
     @Override
-    public List<VisitReadOnlyDTO> getVisitsByClient(Long clientId) {
+    public List<VisitReadOnlyDTO> getVisitsByClient(
+            Long clientId
+    ) {
 
         return visitRepository.findByClientId(clientId)
                 .stream()
@@ -66,7 +86,8 @@ public class VisitServiceImpl implements IVisitService {
             Long clientId
     ) {
 
-        return visitRepository.findByDoctorIdAndClientId(
+        return visitRepository
+                .findByDoctorIdAndClientId(
                         doctorId,
                         clientId
                 )
@@ -76,15 +97,23 @@ public class VisitServiceImpl implements IVisitService {
     }
 
     @Override
-    public void deleteVisit(Long visitId) {
+    public void deleteVisit(
+            Long visitId
+    ) {
 
         Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new RuntimeException("Visit not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Visit not found"
+                        )
+                );
 
         visitRepository.delete(visit);
     }
 
-    private VisitReadOnlyDTO mapToReadOnlyDTO(Visit visit) {
+    private VisitReadOnlyDTO mapToReadOnlyDTO(
+            Visit visit
+    ) {
 
         return new VisitReadOnlyDTO(
                 visit.getId(),

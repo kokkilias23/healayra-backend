@@ -1,5 +1,8 @@
 package gr.healayra.backend.service;
 
+import gr.healayra.backend.core.exception.BadRequestException;
+import gr.healayra.backend.core.exception.ConflictException;
+import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.availability.AvailabilityCreateDTO;
 import gr.healayra.backend.dto.availability.AvailabilityReadOnlyDTO;
 import gr.healayra.backend.dto.availability.AvailabilityUpdateDTO;
@@ -25,10 +28,14 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
     ) {
 
         Doctor doctor = doctorRepository.findById(dto.doctorId())
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Doctor not found"
+                        )
+                );
 
         if (!dto.startTime().isBefore(dto.endTime())) {
-            throw new RuntimeException(
+            throw new BadRequestException(
                     "Start time must be before end time"
             );
         }
@@ -42,7 +49,7 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
                         .isPresent();
 
         if (alreadyExists) {
-            throw new RuntimeException(
+            throw new ConflictException(
                     "Availability already exists for this day"
             );
         }
@@ -63,12 +70,17 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
     }
 
     @Override
-    public AvailabilityReadOnlyDTO getAvailabilityById(Long id) {
+    public AvailabilityReadOnlyDTO getAvailabilityById(
+            Long id
+    ) {
 
-        Availability availability = availabilityRepository.findById(id)
-                .orElseThrow(
-                        () -> new RuntimeException("Availability not found")
-                );
+        Availability availability =
+                availabilityRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Availability not found"
+                                )
+                        );
 
         return mapToReadOnlyDTO(availability);
     }
@@ -92,14 +104,14 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
 
         Availability availability =
                 availabilityRepository.findById(availabilityId)
-                        .orElseThrow(
-                                () -> new RuntimeException(
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
                                         "Availability not found"
                                 )
                         );
 
         if (!dto.startTime().isBefore(dto.endTime())) {
-            throw new RuntimeException(
+            throw new BadRequestException(
                     "Start time must be before end time"
             );
         }
@@ -116,12 +128,14 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
     }
 
     @Override
-    public void deleteAvailability(Long availabilityId) {
+    public void deleteAvailability(
+            Long availabilityId
+    ) {
 
         Availability availability =
                 availabilityRepository.findById(availabilityId)
-                        .orElseThrow(
-                                () -> new RuntimeException(
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
                                         "Availability not found"
                                 )
                         );

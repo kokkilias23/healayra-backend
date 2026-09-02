@@ -1,5 +1,6 @@
 package gr.healayra.backend.service;
 
+import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.note.NoteCreateDTO;
 import gr.healayra.backend.dto.note.NoteReadOnlyDTO;
 import gr.healayra.backend.dto.note.NoteUpdateDTO;
@@ -20,32 +21,47 @@ public class NoteServiceImpl implements INoteService {
     private final VisitRepository visitRepository;
 
     @Override
-    public NoteReadOnlyDTO createNote(NoteCreateDTO dto) {
+    public NoteReadOnlyDTO createNote(
+            NoteCreateDTO dto
+    ) {
 
         Visit visit = visitRepository.findById(dto.visitId())
-                .orElseThrow(() -> new RuntimeException("Visit not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Visit not found"
+                        )
+                );
 
         Note note = Note.builder()
                 .visit(visit)
                 .content(dto.content())
                 .build();
 
-        Note savedNote = noteRepository.save(note);
+        Note savedNote =
+                noteRepository.save(note);
 
         return mapToReadOnlyDTO(savedNote);
     }
 
     @Override
-    public NoteReadOnlyDTO getNoteById(Long id) {
+    public NoteReadOnlyDTO getNoteById(
+            Long id
+    ) {
 
         Note note = noteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Note not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Note not found"
+                        )
+                );
 
         return mapToReadOnlyDTO(note);
     }
 
     @Override
-    public List<NoteReadOnlyDTO> getNotesByVisit(Long visitId) {
+    public List<NoteReadOnlyDTO> getNotesByVisit(
+            Long visitId
+    ) {
 
         return noteRepository.findByVisitId(visitId)
                 .stream()
@@ -60,25 +76,38 @@ public class NoteServiceImpl implements INoteService {
     ) {
 
         Note note = noteRepository.findById(noteId)
-                .orElseThrow(() -> new RuntimeException("Note not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Note not found"
+                        )
+                );
 
         note.setContent(dto.content());
 
-        Note updatedNote = noteRepository.save(note);
+        Note updatedNote =
+                noteRepository.save(note);
 
         return mapToReadOnlyDTO(updatedNote);
     }
 
     @Override
-    public void deleteNote(Long noteId) {
+    public void deleteNote(
+            Long noteId
+    ) {
 
         Note note = noteRepository.findById(noteId)
-                .orElseThrow(() -> new RuntimeException("Note not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Note not found"
+                        )
+                );
 
         noteRepository.delete(note);
     }
 
-    private NoteReadOnlyDTO mapToReadOnlyDTO(Note note) {
+    private NoteReadOnlyDTO mapToReadOnlyDTO(
+            Note note
+    ) {
 
         return new NoteReadOnlyDTO(
                 note.getId(),

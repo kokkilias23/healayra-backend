@@ -1,5 +1,7 @@
 package gr.healayra.backend.authentication;
 
+import gr.healayra.backend.core.exception.ConflictException;
+import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.auth.AuthResponseDTO;
 import gr.healayra.backend.dto.auth.LoginRequestDTO;
 import gr.healayra.backend.dto.auth.RegisterRequestDTO;
@@ -26,7 +28,9 @@ public class AuthServiceImpl implements IAuthService {
     public AuthResponseDTO register(RegisterRequestDTO dto) {
 
         if (userRepository.existsByEmail(dto.email())) {
-            throw new RuntimeException("Email already exists");
+            throw new ConflictException(
+                    "Email already exists"
+            );
         }
 
         User user = User.builder()
@@ -38,9 +42,12 @@ public class AuthServiceImpl implements IAuthService {
         User savedUser = userRepository.save(user);
 
         UserDetails userDetails =
-                customUserDetailsService.loadUserByUsername(savedUser.getEmail());
+                customUserDetailsService.loadUserByUsername(
+                        savedUser.getEmail()
+                );
 
-        String token = jwtService.generateToken(userDetails);
+        String token =
+                jwtService.generateToken(userDetails);
 
         return new AuthResponseDTO(
                 savedUser.getId(),
@@ -61,12 +68,19 @@ public class AuthServiceImpl implements IAuthService {
         );
 
         User user = userRepository.findByEmail(dto.email())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found"
+                        )
+                );
 
         UserDetails userDetails =
-                customUserDetailsService.loadUserByUsername(user.getEmail());
+                customUserDetailsService.loadUserByUsername(
+                        user.getEmail()
+                );
 
-        String token = jwtService.generateToken(userDetails);
+        String token =
+                jwtService.generateToken(userDetails);
 
         return new AuthResponseDTO(
                 user.getId(),

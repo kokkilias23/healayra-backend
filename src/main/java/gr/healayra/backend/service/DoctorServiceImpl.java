@@ -1,5 +1,7 @@
 package gr.healayra.backend.service;
 
+import gr.healayra.backend.core.exception.ConflictException;
+import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.doctor.DoctorCreateDTO;
 import gr.healayra.backend.dto.doctor.DoctorReadOnlyDTO;
 import gr.healayra.backend.dto.doctor.DoctorUpdateDTO;
@@ -23,13 +25,15 @@ public class DoctorServiceImpl implements IDoctorService {
     public DoctorReadOnlyDTO createDoctor(DoctorCreateDTO dto) {
 
         User user = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found")
+                );
 
         boolean doctorAlreadyExists =
                 doctorRepository.findByUserId(dto.userId()).isPresent();
 
         if (doctorAlreadyExists) {
-            throw new RuntimeException(
+            throw new ConflictException(
                     "Doctor profile already exists for this user"
             );
         }
@@ -51,7 +55,9 @@ public class DoctorServiceImpl implements IDoctorService {
     public DoctorReadOnlyDTO getDoctorById(Long id) {
 
         Doctor doctor = doctorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Doctor not found")
+                );
 
         return mapToReadOnlyDTO(doctor);
     }
@@ -60,7 +66,9 @@ public class DoctorServiceImpl implements IDoctorService {
     public DoctorReadOnlyDTO getDoctorByUserId(Long userId) {
 
         Doctor doctor = doctorRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Doctor not found")
+                );
 
         return mapToReadOnlyDTO(doctor);
     }
@@ -81,7 +89,9 @@ public class DoctorServiceImpl implements IDoctorService {
     ) {
 
         Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Doctor not found")
+                );
 
         doctor.setFirstName(dto.firstName());
         doctor.setLastName(dto.lastName());
@@ -97,7 +107,9 @@ public class DoctorServiceImpl implements IDoctorService {
     public void deleteDoctor(Long doctorId) {
 
         Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Doctor not found")
+                );
 
         doctorRepository.delete(doctor);
     }

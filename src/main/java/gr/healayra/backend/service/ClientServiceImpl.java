@@ -1,5 +1,7 @@
 package gr.healayra.backend.service;
 
+import gr.healayra.backend.core.exception.ConflictException;
+import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.client.ClientCreateDTO;
 import gr.healayra.backend.dto.client.ClientReadOnlyDTO;
 import gr.healayra.backend.dto.client.ClientUpdateDTO;
@@ -23,13 +25,15 @@ public class ClientServiceImpl implements IClientService {
     public ClientReadOnlyDTO createClient(ClientCreateDTO dto) {
 
         User user = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found")
+                );
 
         boolean clientAlreadyExists =
                 clientRepository.findByUserId(dto.userId()).isPresent();
 
         if (clientAlreadyExists) {
-            throw new RuntimeException(
+            throw new ConflictException(
                     "Client profile already exists for this user"
             );
         }
@@ -50,7 +54,9 @@ public class ClientServiceImpl implements IClientService {
     public ClientReadOnlyDTO getClientById(Long id) {
 
         Client client = clientRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Client not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Client not found")
+                );
 
         return mapToReadOnlyDTO(client);
     }
@@ -59,7 +65,9 @@ public class ClientServiceImpl implements IClientService {
     public ClientReadOnlyDTO getClientByUserId(Long userId) {
 
         Client client = clientRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Client not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Client not found")
+                );
 
         return mapToReadOnlyDTO(client);
     }
@@ -80,7 +88,9 @@ public class ClientServiceImpl implements IClientService {
     ) {
 
         Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new RuntimeException("Client not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Client not found")
+                );
 
         client.setFirstName(dto.firstName());
         client.setLastName(dto.lastName());
@@ -95,7 +105,9 @@ public class ClientServiceImpl implements IClientService {
     public void deleteClient(Long clientId) {
 
         Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new RuntimeException("Client not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Client not found")
+                );
 
         clientRepository.delete(client);
     }
