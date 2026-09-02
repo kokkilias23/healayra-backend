@@ -1,4 +1,4 @@
-package gr.healayra.backend.security;
+package gr.healayra.backend.core.security.filter;
 
 import gr.healayra.backend.authentication.CustomUserDetailsService;
 import gr.healayra.backend.authentication.JwtService;

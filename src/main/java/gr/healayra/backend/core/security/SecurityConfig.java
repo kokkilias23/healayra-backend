@@ -1,6 +1,7 @@
-package gr.healayra.backend.security;
+package gr.healayra.backend.core.security;
 
 import gr.healayra.backend.authentication.CustomUserDetailsService;
+import gr.healayra.backend.core.security.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
