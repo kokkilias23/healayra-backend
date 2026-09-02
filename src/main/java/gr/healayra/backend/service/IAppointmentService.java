@@ -8,13 +8,18 @@ import java.util.List;
 
 public interface IAppointmentService {
 
-    AppointmentReadOnlyDTO createAppointment(AppointmentCreateDTO dto);
+    AppointmentReadOnlyDTO createAppointment(
+            AppointmentCreateDTO dto,
+            String clientEmail
+    );
 
     AppointmentReadOnlyDTO getAppointmentById(Long id);
 
     List<AppointmentReadOnlyDTO> getAppointmentsByDoctor(Long doctorId);
 
     List<AppointmentReadOnlyDTO> getAppointmentsByClient(Long clientId);
+
+    List<AppointmentReadOnlyDTO> getMyAppointments(String clientEmail);
 
     AppointmentReadOnlyDTO updateStatus(
             Long appointmentId,

@@ -4,6 +4,7 @@ import gr.healayra.backend.core.exception.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -13,6 +14,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CustomAccessDeniedHandler
@@ -24,8 +26,14 @@ public class CustomAccessDeniedHandler
     public void handle(
             HttpServletRequest request,
             HttpServletResponse response,
-            AccessDeniedException ignoredAccessDeniedException
+            AccessDeniedException accessDeniedException
     ) throws IOException {
+
+        log.warn(
+                "Access denied for request={} with message={}",
+                request.getRequestURI(),
+                accessDeniedException.getMessage()
+        );
 
         ApiErrorResponse errorResponse =
                 new ApiErrorResponse(
@@ -38,15 +46,11 @@ public class CustomAccessDeniedHandler
                 );
 
         response.setStatus(
-                HttpStatus.FORBIDDEN.value()
+                HttpServletResponse.SC_FORBIDDEN
         );
 
         response.setContentType(
-                "application/json"
-        );
-
-        response.setCharacterEncoding(
-                "UTF-8"
+                "application/json; charset=UTF-8"
         );
 
         objectMapper.writeValue(

@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -21,15 +22,32 @@ public class AppointmentController {
 
     @PostMapping
     public ResponseEntity<AppointmentReadOnlyDTO> createAppointment(
-            @Valid @RequestBody AppointmentCreateDTO dto
+            @Valid @RequestBody AppointmentCreateDTO dto,
+            Principal principal
     ) {
 
         AppointmentReadOnlyDTO createdAppointment =
-                appointmentService.createAppointment(dto);
+                appointmentService.createAppointment(
+                        dto,
+                        principal.getName()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(createdAppointment);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<AppointmentReadOnlyDTO>> getMyAppointments(
+            Principal principal
+    ) {
+
+        List<AppointmentReadOnlyDTO> appointments =
+                appointmentService.getMyAppointments(
+                        principal.getName()
+                );
+
+        return ResponseEntity.ok(appointments);
     }
 
     @GetMapping("/{id}")
@@ -37,10 +55,9 @@ public class AppointmentController {
             @PathVariable Long id
     ) {
 
-        AppointmentReadOnlyDTO appointment =
-                appointmentService.getAppointmentById(id);
-
-        return ResponseEntity.ok(appointment);
+        return ResponseEntity.ok(
+                appointmentService.getAppointmentById(id)
+        );
     }
 
     @GetMapping("/doctor/{doctorId}")
@@ -48,10 +65,9 @@ public class AppointmentController {
             @PathVariable Long doctorId
     ) {
 
-        List<AppointmentReadOnlyDTO> appointments =
-                appointmentService.getAppointmentsByDoctor(doctorId);
-
-        return ResponseEntity.ok(appointments);
+        return ResponseEntity.ok(
+                appointmentService.getAppointmentsByDoctor(doctorId)
+        );
     }
 
     @GetMapping("/client/{clientId}")
@@ -59,10 +75,9 @@ public class AppointmentController {
             @PathVariable Long clientId
     ) {
 
-        List<AppointmentReadOnlyDTO> appointments =
-                appointmentService.getAppointmentsByClient(clientId);
-
-        return ResponseEntity.ok(appointments);
+        return ResponseEntity.ok(
+                appointmentService.getAppointmentsByClient(clientId)
+        );
     }
 
     @PatchMapping("/{id}/status")
@@ -71,9 +86,8 @@ public class AppointmentController {
             @Valid @RequestBody AppointmentUpdateStatusDTO dto
     ) {
 
-        AppointmentReadOnlyDTO updatedAppointment =
-                appointmentService.updateStatus(id, dto);
-
-        return ResponseEntity.ok(updatedAppointment);
+        return ResponseEntity.ok(
+                appointmentService.updateStatus(id, dto)
+        );
     }
 }

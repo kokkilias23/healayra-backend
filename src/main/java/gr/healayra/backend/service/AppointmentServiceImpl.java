@@ -27,7 +27,8 @@ public class AppointmentServiceImpl implements IAppointmentService {
 
     @Override
     public AppointmentReadOnlyDTO createAppointment(
-            AppointmentCreateDTO dto
+            AppointmentCreateDTO dto,
+            String clientEmail
     ) {
 
         Doctor doctor = doctorRepository.findById(dto.doctorId())
@@ -37,10 +38,10 @@ public class AppointmentServiceImpl implements IAppointmentService {
                         )
                 );
 
-        Client client = clientRepository.findById(dto.clientId())
+        Client client = clientRepository.findByUserEmail(clientEmail)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Client not found"
+                                "Client profile not found"
                         )
                 );
 
@@ -103,6 +104,25 @@ public class AppointmentServiceImpl implements IAppointmentService {
     ) {
 
         return appointmentRepository.findByClientId(clientId)
+                .stream()
+                .map(this::mapToReadOnlyDTO)
+                .toList();
+    }
+
+    @Override
+    public List<AppointmentReadOnlyDTO> getMyAppointments(
+            String clientEmail
+    ) {
+
+        Client client = clientRepository.findByUserEmail(clientEmail)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Client profile not found"
+                        )
+                );
+
+        return appointmentRepository
+                .findByClientId(client.getId())
                 .stream()
                 .map(this::mapToReadOnlyDTO)
                 .toList();

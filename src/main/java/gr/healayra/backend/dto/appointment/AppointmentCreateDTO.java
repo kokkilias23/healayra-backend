@@ -11,9 +11,6 @@ public record AppointmentCreateDTO(
         Long doctorId,
 
         @NotNull
-        Long clientId,
-
-        @NotNull
         @Future
         LocalDateTime appointmentTime
 
