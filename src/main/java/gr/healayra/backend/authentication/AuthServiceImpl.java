@@ -5,6 +5,7 @@ import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.auth.AuthResponseDTO;
 import gr.healayra.backend.dto.auth.LoginRequestDTO;
 import gr.healayra.backend.dto.auth.RegisterRequestDTO;
+import gr.healayra.backend.model.Role;
 import gr.healayra.backend.model.User;
 import gr.healayra.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class AuthServiceImpl implements IAuthService {
         User user = User.builder()
                 .email(dto.email())
                 .password(passwordEncoder.encode(dto.password()))
-                .role(dto.role())
+                .role(Role.CLIENT)
                 .build();
 
         User savedUser = userRepository.save(user);
