@@ -44,7 +44,8 @@ public class AppointmentServiceImpl implements IAppointmentService {
                         )
                 );
 
-        Client client = clientRepository.findByUserEmail(clientEmail)
+        Client client = clientRepository
+                .findByUserEmailAndDeletedFalse(clientEmail)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Client profile not found"
@@ -172,7 +173,8 @@ public class AppointmentServiceImpl implements IAppointmentService {
             String clientEmail
     ) {
 
-        Client client = clientRepository.findByUserEmail(clientEmail)
+        Client client = clientRepository
+                .findByUserEmailAndDeletedFalse(clientEmail)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Client profile not found"

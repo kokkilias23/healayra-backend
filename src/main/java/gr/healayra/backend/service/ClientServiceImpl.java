@@ -53,7 +53,8 @@ public class ClientServiceImpl implements IClientService {
     @Override
     public ClientReadOnlyDTO getClientById(Long id) {
 
-        Client client = clientRepository.findById(id)
+        Client client = clientRepository
+                .findByIdAndDeletedFalse(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Client not found")
                 );
@@ -64,7 +65,8 @@ public class ClientServiceImpl implements IClientService {
     @Override
     public ClientReadOnlyDTO getClientByUserId(Long userId) {
 
-        Client client = clientRepository.findByUserId(userId)
+        Client client = clientRepository
+                .findByUserIdAndDeletedFalse(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Client not found")
                 );
@@ -75,7 +77,8 @@ public class ClientServiceImpl implements IClientService {
     @Override
     public List<ClientReadOnlyDTO> getAllClients() {
 
-        return clientRepository.findAll()
+        return clientRepository
+                .findAllByDeletedFalse()
                 .stream()
                 .map(this::mapToReadOnlyDTO)
                 .toList();
@@ -87,7 +90,8 @@ public class ClientServiceImpl implements IClientService {
             ClientUpdateDTO dto
     ) {
 
-        Client client = clientRepository.findById(clientId)
+        Client client = clientRepository
+                .findByIdAndDeletedFalse(clientId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Client not found")
                 );
@@ -104,12 +108,15 @@ public class ClientServiceImpl implements IClientService {
     @Override
     public void deleteClient(Long clientId) {
 
-        Client client = clientRepository.findById(clientId)
+        Client client = clientRepository
+                .findByIdAndDeletedFalse(clientId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Client not found")
                 );
 
-        clientRepository.delete(client);
+        client.softDelete();
+
+        clientRepository.save(client);
     }
 
     private ClientReadOnlyDTO mapToReadOnlyDTO(Client client) {
