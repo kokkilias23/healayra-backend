@@ -11,6 +11,7 @@ import gr.healayra.backend.repository.DoctorRepository;
 import gr.healayra.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,15 +23,22 @@ public class DoctorServiceImpl implements IDoctorService {
     private final UserRepository userRepository;
 
     @Override
-    public DoctorReadOnlyDTO createDoctor(DoctorCreateDTO dto) {
+    public DoctorReadOnlyDTO createDoctor(
+            DoctorCreateDTO dto
+    ) {
 
-        User user = userRepository.findById(dto.userId())
+        User user = userRepository
+                .findByIdAndDeletedFalse(dto.userId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found")
+                        new ResourceNotFoundException(
+                                "User not found"
+                        )
                 );
 
         boolean doctorAlreadyExists =
-                doctorRepository.findByUserId(dto.userId()).isPresent();
+                doctorRepository
+                        .findByUserId(dto.userId())
+                        .isPresent();
 
         if (doctorAlreadyExists) {
             throw new ConflictException(
@@ -67,7 +75,9 @@ public class DoctorServiceImpl implements IDoctorService {
     }
 
     @Override
-    public DoctorReadOnlyDTO getDoctorByUserId(Long userId) {
+    public DoctorReadOnlyDTO getDoctorByUserId(
+            Long userId
+    ) {
 
         Doctor doctor = doctorRepository
                 .findByUserIdAndDeletedFalse(userId)
@@ -116,6 +126,7 @@ public class DoctorServiceImpl implements IDoctorService {
     }
 
     @Override
+    @Transactional
     public void deleteDoctor(Long doctorId) {
 
         Doctor doctor = doctorRepository
@@ -126,9 +137,13 @@ public class DoctorServiceImpl implements IDoctorService {
                         )
                 );
 
+        User user = doctor.getUser();
+
         doctor.softDelete();
+        user.softDelete();
 
         doctorRepository.save(doctor);
+        userRepository.save(user);
     }
 
     private DoctorReadOnlyDTO mapToReadOnlyDTO(

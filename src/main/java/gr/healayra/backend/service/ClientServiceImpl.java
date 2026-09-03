@@ -11,6 +11,7 @@ import gr.healayra.backend.repository.ClientRepository;
 import gr.healayra.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,13 +25,18 @@ public class ClientServiceImpl implements IClientService {
     @Override
     public ClientReadOnlyDTO createClient(ClientCreateDTO dto) {
 
-        User user = userRepository.findById(dto.userId())
+        User user = userRepository
+                .findByIdAndDeletedFalse(dto.userId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found")
+                        new ResourceNotFoundException(
+                                "User not found"
+                        )
                 );
 
         boolean clientAlreadyExists =
-                clientRepository.findByUserId(dto.userId()).isPresent();
+                clientRepository
+                        .findByUserId(dto.userId())
+                        .isPresent();
 
         if (clientAlreadyExists) {
             throw new ConflictException(
@@ -45,7 +51,8 @@ public class ClientServiceImpl implements IClientService {
                 .phone(dto.phone())
                 .build();
 
-        Client savedClient = clientRepository.save(client);
+        Client savedClient =
+                clientRepository.save(client);
 
         return mapToReadOnlyDTO(savedClient);
     }
@@ -56,7 +63,9 @@ public class ClientServiceImpl implements IClientService {
         Client client = clientRepository
                 .findByIdAndDeletedFalse(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Client not found")
+                        new ResourceNotFoundException(
+                                "Client not found"
+                        )
                 );
 
         return mapToReadOnlyDTO(client);
@@ -68,7 +77,9 @@ public class ClientServiceImpl implements IClientService {
         Client client = clientRepository
                 .findByUserIdAndDeletedFalse(userId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Client not found")
+                        new ResourceNotFoundException(
+                                "Client not found"
+                        )
                 );
 
         return mapToReadOnlyDTO(client);
@@ -93,33 +104,45 @@ public class ClientServiceImpl implements IClientService {
         Client client = clientRepository
                 .findByIdAndDeletedFalse(clientId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Client not found")
+                        new ResourceNotFoundException(
+                                "Client not found"
+                        )
                 );
 
         client.setFirstName(dto.firstName());
         client.setLastName(dto.lastName());
         client.setPhone(dto.phone());
 
-        Client updatedClient = clientRepository.save(client);
+        Client updatedClient =
+                clientRepository.save(client);
 
         return mapToReadOnlyDTO(updatedClient);
     }
 
     @Override
+    @Transactional
     public void deleteClient(Long clientId) {
 
         Client client = clientRepository
                 .findByIdAndDeletedFalse(clientId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Client not found")
+                        new ResourceNotFoundException(
+                                "Client not found"
+                        )
                 );
 
+        User user = client.getUser();
+
         client.softDelete();
+        user.softDelete();
 
         clientRepository.save(client);
+        userRepository.save(user);
     }
 
-    private ClientReadOnlyDTO mapToReadOnlyDTO(Client client) {
+    private ClientReadOnlyDTO mapToReadOnlyDTO(
+            Client client
+    ) {
 
         return new ClientReadOnlyDTO(
                 client.getId(),

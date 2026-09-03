@@ -16,7 +16,8 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserReadOnlyDTO getUserById(Long id) {
 
-        User user = userRepository.findById(id)
+        User user = userRepository
+                .findByIdAndDeletedFalse(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "User not found"
@@ -29,7 +30,8 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserReadOnlyDTO getUserByEmail(String email) {
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository
+                .findByEmailAndDeletedFalse(email)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "User not found"

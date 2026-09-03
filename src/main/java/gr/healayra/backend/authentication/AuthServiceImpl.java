@@ -83,7 +83,8 @@ public class AuthServiceImpl implements IAuthService {
                 )
         );
 
-        User user = userRepository.findByEmail(dto.email())
+        User user = userRepository
+                .findByEmailAndDeletedFalse(dto.email())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "User not found"
