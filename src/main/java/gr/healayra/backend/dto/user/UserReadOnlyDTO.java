@@ -2,7 +2,7 @@ package gr.healayra.backend.dto.user;
 
 import gr.healayra.backend.model.Role;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record UserReadOnlyDTO(
 
@@ -12,9 +12,9 @@ public record UserReadOnlyDTO(
 
         Role role,
 
-        LocalDateTime createdAt,
+        Instant createdAt,
 
-        LocalDateTime updatedAt
+        Instant updatedAt
 
 ) {
 }

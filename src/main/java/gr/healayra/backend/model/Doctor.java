@@ -14,14 +14,18 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Doctor {
+public class Doctor extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne(optional = false)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            unique = true
+    )
     private User user;
 
     @Column(name = "first_name", nullable = false)

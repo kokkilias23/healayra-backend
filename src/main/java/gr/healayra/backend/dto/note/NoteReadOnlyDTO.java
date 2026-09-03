@@ -1,6 +1,6 @@
 package gr.healayra.backend.dto.note;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record NoteReadOnlyDTO(
 
@@ -10,9 +10,9 @@ public record NoteReadOnlyDTO(
 
         String content,
 
-        LocalDateTime createdAt,
+        Instant createdAt,
 
-        LocalDateTime updatedAt
+        Instant updatedAt
 
 ) {
 }
