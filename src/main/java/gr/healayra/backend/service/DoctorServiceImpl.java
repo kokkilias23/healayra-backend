@@ -46,7 +46,8 @@ public class DoctorServiceImpl implements IDoctorService {
                 .phone(dto.phone())
                 .build();
 
-        Doctor savedDoctor = doctorRepository.save(doctor);
+        Doctor savedDoctor =
+                doctorRepository.save(doctor);
 
         return mapToReadOnlyDTO(savedDoctor);
     }
@@ -54,9 +55,12 @@ public class DoctorServiceImpl implements IDoctorService {
     @Override
     public DoctorReadOnlyDTO getDoctorById(Long id) {
 
-        Doctor doctor = doctorRepository.findById(id)
+        Doctor doctor = doctorRepository
+                .findByIdAndDeletedFalse(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Doctor not found")
+                        new ResourceNotFoundException(
+                                "Doctor not found"
+                        )
                 );
 
         return mapToReadOnlyDTO(doctor);
@@ -65,9 +69,12 @@ public class DoctorServiceImpl implements IDoctorService {
     @Override
     public DoctorReadOnlyDTO getDoctorByUserId(Long userId) {
 
-        Doctor doctor = doctorRepository.findByUserId(userId)
+        Doctor doctor = doctorRepository
+                .findByUserIdAndDeletedFalse(userId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Doctor not found")
+                        new ResourceNotFoundException(
+                                "Doctor not found"
+                        )
                 );
 
         return mapToReadOnlyDTO(doctor);
@@ -76,7 +83,8 @@ public class DoctorServiceImpl implements IDoctorService {
     @Override
     public List<DoctorReadOnlyDTO> getAllDoctors() {
 
-        return doctorRepository.findAll()
+        return doctorRepository
+                .findAllByDeletedFalse()
                 .stream()
                 .map(this::mapToReadOnlyDTO)
                 .toList();
@@ -88,9 +96,12 @@ public class DoctorServiceImpl implements IDoctorService {
             DoctorUpdateDTO dto
     ) {
 
-        Doctor doctor = doctorRepository.findById(doctorId)
+        Doctor doctor = doctorRepository
+                .findByIdAndDeletedFalse(doctorId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Doctor not found")
+                        new ResourceNotFoundException(
+                                "Doctor not found"
+                        )
                 );
 
         doctor.setFirstName(dto.firstName());
@@ -98,7 +109,8 @@ public class DoctorServiceImpl implements IDoctorService {
         doctor.setSpecialty(dto.specialty());
         doctor.setPhone(dto.phone());
 
-        Doctor updatedDoctor = doctorRepository.save(doctor);
+        Doctor updatedDoctor =
+                doctorRepository.save(doctor);
 
         return mapToReadOnlyDTO(updatedDoctor);
     }
@@ -106,15 +118,22 @@ public class DoctorServiceImpl implements IDoctorService {
     @Override
     public void deleteDoctor(Long doctorId) {
 
-        Doctor doctor = doctorRepository.findById(doctorId)
+        Doctor doctor = doctorRepository
+                .findByIdAndDeletedFalse(doctorId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Doctor not found")
+                        new ResourceNotFoundException(
+                                "Doctor not found"
+                        )
                 );
 
-        doctorRepository.delete(doctor);
+        doctor.softDelete();
+
+        doctorRepository.save(doctor);
     }
 
-    private DoctorReadOnlyDTO mapToReadOnlyDTO(Doctor doctor) {
+    private DoctorReadOnlyDTO mapToReadOnlyDTO(
+            Doctor doctor
+    ) {
 
         return new DoctorReadOnlyDTO(
                 doctor.getId(),

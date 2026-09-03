@@ -6,19 +6,23 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+public interface AppointmentRepository
+        extends JpaRepository<Appointment, Long> {
 
-    List<Appointment> findByDoctorId(Long doctorId);
+    Optional<Appointment> findByIdAndDeletedFalse(Long id);
 
-    List<Appointment> findByClientId(Long clientId);
+    List<Appointment> findByDoctorIdAndDeletedFalse(Long doctorId);
 
-    List<Appointment> findByDoctorIdAndStatus(
+    List<Appointment> findByClientIdAndDeletedFalse(Long clientId);
+
+    List<Appointment> findByDoctorIdAndStatusAndDeletedFalse(
             Long doctorId,
             AppointmentStatus status
     );
 
-    boolean existsByDoctorIdAndAppointmentTime(
+    boolean existsByDoctorIdAndAppointmentTimeAndDeletedFalse(
             Long doctorId,
             LocalDateTime appointmentTime
     );

@@ -7,11 +7,14 @@ import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Optional;
 
-public interface AvailabilityRepository extends JpaRepository<Availability, Long> {
+public interface AvailabilityRepository
+        extends JpaRepository<Availability, Long> {
 
-    List<Availability> findByDoctorId(Long doctorId);
+    Optional<Availability> findByIdAndDeletedFalse(Long id);
 
-    Optional<Availability> findByDoctorIdAndDayOfWeek(
+    List<Availability> findByDoctorIdAndDeletedFalse(Long doctorId);
+
+    Optional<Availability> findByDoctorIdAndDayOfWeekAndDeletedFalse(
             Long doctorId,
             DayOfWeek dayOfWeek
     );

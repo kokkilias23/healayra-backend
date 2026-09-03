@@ -25,7 +25,8 @@ public class NoteServiceImpl implements INoteService {
             NoteCreateDTO dto
     ) {
 
-        Visit visit = visitRepository.findById(dto.visitId())
+        Visit visit = visitRepository
+                .findByIdAndDeletedFalse(dto.visitId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Visit not found"
@@ -48,7 +49,8 @@ public class NoteServiceImpl implements INoteService {
             Long id
     ) {
 
-        Note note = noteRepository.findById(id)
+        Note note = noteRepository
+                .findByIdAndDeletedFalse(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Note not found"
@@ -63,7 +65,8 @@ public class NoteServiceImpl implements INoteService {
             Long visitId
     ) {
 
-        return noteRepository.findByVisitId(visitId)
+        return noteRepository
+                .findByVisitIdAndDeletedFalse(visitId)
                 .stream()
                 .map(this::mapToReadOnlyDTO)
                 .toList();
@@ -75,7 +78,8 @@ public class NoteServiceImpl implements INoteService {
             NoteUpdateDTO dto
     ) {
 
-        Note note = noteRepository.findById(noteId)
+        Note note = noteRepository
+                .findByIdAndDeletedFalse(noteId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Note not found"
@@ -95,14 +99,17 @@ public class NoteServiceImpl implements INoteService {
             Long noteId
     ) {
 
-        Note note = noteRepository.findById(noteId)
+        Note note = noteRepository
+                .findByIdAndDeletedFalse(noteId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Note not found"
                         )
                 );
 
-        noteRepository.delete(note);
+        note.softDelete();
+
+        noteRepository.save(note);
     }
 
     private NoteReadOnlyDTO mapToReadOnlyDTO(

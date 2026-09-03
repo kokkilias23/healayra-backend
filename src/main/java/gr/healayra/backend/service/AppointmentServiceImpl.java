@@ -37,7 +37,8 @@ public class AppointmentServiceImpl implements IAppointmentService {
             String clientEmail
     ) {
 
-        Doctor doctor = doctorRepository.findById(dto.doctorId())
+        Doctor doctor = doctorRepository
+                .findByIdAndDeletedFalse(dto.doctorId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Doctor not found"
@@ -54,10 +55,9 @@ public class AppointmentServiceImpl implements IAppointmentService {
 
         Availability availability =
                 availabilityRepository
-                        .findByDoctorIdAndDayOfWeek(
+                        .findByDoctorIdAndDayOfWeekAndDeletedFalse(
                                 dto.doctorId(),
-                                dto.appointmentTime()
-                                        .getDayOfWeek()
+                                dto.appointmentTime().getDayOfWeek()
                         )
                         .orElseThrow(() ->
                                 new BadRequestException(
@@ -106,7 +106,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
 
         boolean alreadyBooked =
                 appointmentRepository
-                        .existsByDoctorIdAndAppointmentTime(
+                        .existsByDoctorIdAndAppointmentTimeAndDeletedFalse(
                                 dto.doctorId(),
                                 dto.appointmentTime()
                         );
@@ -136,7 +136,8 @@ public class AppointmentServiceImpl implements IAppointmentService {
     ) {
 
         Appointment appointment =
-                appointmentRepository.findById(id)
+                appointmentRepository
+                        .findByIdAndDeletedFalse(id)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Appointment not found"
@@ -151,7 +152,8 @@ public class AppointmentServiceImpl implements IAppointmentService {
             Long doctorId
     ) {
 
-        return appointmentRepository.findByDoctorId(doctorId)
+        return appointmentRepository
+                .findByDoctorIdAndDeletedFalse(doctorId)
                 .stream()
                 .map(this::mapToReadOnlyDTO)
                 .toList();
@@ -162,7 +164,8 @@ public class AppointmentServiceImpl implements IAppointmentService {
             Long clientId
     ) {
 
-        return appointmentRepository.findByClientId(clientId)
+        return appointmentRepository
+                .findByClientIdAndDeletedFalse(clientId)
                 .stream()
                 .map(this::mapToReadOnlyDTO)
                 .toList();
@@ -182,7 +185,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
                 );
 
         return appointmentRepository
-                .findByClientId(client.getId())
+                .findByClientIdAndDeletedFalse(client.getId())
                 .stream()
                 .map(this::mapToReadOnlyDTO)
                 .toList();
@@ -195,7 +198,8 @@ public class AppointmentServiceImpl implements IAppointmentService {
     ) {
 
         Appointment appointment =
-                appointmentRepository.findById(appointmentId)
+                appointmentRepository
+                        .findByIdAndDeletedFalse(appointmentId)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Appointment not found"

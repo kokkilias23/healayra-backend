@@ -27,14 +27,16 @@ public class VisitServiceImpl implements IVisitService {
             VisitCreateDTO dto
     ) {
 
-        Doctor doctor = doctorRepository.findById(dto.doctorId())
+        Doctor doctor = doctorRepository
+                .findByIdAndDeletedFalse(dto.doctorId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Doctor not found"
                         )
                 );
 
-        Client client = clientRepository.findById(dto.clientId())
+        Client client = clientRepository
+                .findByIdAndDeletedFalse(dto.clientId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Client not found"
@@ -59,7 +61,8 @@ public class VisitServiceImpl implements IVisitService {
             Long id
     ) {
 
-        Visit visit = visitRepository.findById(id)
+        Visit visit = visitRepository
+                .findByIdAndDeletedFalse(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Visit not found"
@@ -74,7 +77,8 @@ public class VisitServiceImpl implements IVisitService {
             Long clientId
     ) {
 
-        return visitRepository.findByClientId(clientId)
+        return visitRepository
+                .findByClientIdAndDeletedFalse(clientId)
                 .stream()
                 .map(this::mapToReadOnlyDTO)
                 .toList();
@@ -87,7 +91,7 @@ public class VisitServiceImpl implements IVisitService {
     ) {
 
         return visitRepository
-                .findByDoctorIdAndClientId(
+                .findByDoctorIdAndClientIdAndDeletedFalse(
                         doctorId,
                         clientId
                 )
@@ -101,14 +105,17 @@ public class VisitServiceImpl implements IVisitService {
             Long visitId
     ) {
 
-        Visit visit = visitRepository.findById(visitId)
+        Visit visit = visitRepository
+                .findByIdAndDeletedFalse(visitId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Visit not found"
                         )
                 );
 
-        visitRepository.delete(visit);
+        visit.softDelete();
+
+        visitRepository.save(visit);
     }
 
     private VisitReadOnlyDTO mapToReadOnlyDTO(

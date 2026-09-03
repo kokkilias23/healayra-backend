@@ -27,7 +27,8 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
             AvailabilityCreateDTO dto
     ) {
 
-        Doctor doctor = doctorRepository.findById(dto.doctorId())
+        Doctor doctor = doctorRepository
+                .findByIdAndDeletedFalse(dto.doctorId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Doctor not found"
@@ -42,7 +43,7 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
 
         boolean alreadyExists =
                 availabilityRepository
-                        .findByDoctorIdAndDayOfWeek(
+                        .findByDoctorIdAndDayOfWeekAndDeletedFalse(
                                 dto.doctorId(),
                                 dto.dayOfWeek()
                         )
@@ -75,7 +76,8 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
     ) {
 
         Availability availability =
-                availabilityRepository.findById(id)
+                availabilityRepository
+                        .findByIdAndDeletedFalse(id)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Availability not found"
@@ -90,7 +92,8 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
             Long doctorId
     ) {
 
-        return availabilityRepository.findByDoctorId(doctorId)
+        return availabilityRepository
+                .findByDoctorIdAndDeletedFalse(doctorId)
                 .stream()
                 .map(this::mapToReadOnlyDTO)
                 .toList();
@@ -103,7 +106,8 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
     ) {
 
         Availability availability =
-                availabilityRepository.findById(availabilityId)
+                availabilityRepository
+                        .findByIdAndDeletedFalse(availabilityId)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Availability not found"
@@ -133,14 +137,17 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
     ) {
 
         Availability availability =
-                availabilityRepository.findById(availabilityId)
+                availabilityRepository
+                        .findByIdAndDeletedFalse(availabilityId)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Availability not found"
                                 )
                         );
 
-        availabilityRepository.delete(availability);
+        availability.softDelete();
+
+        availabilityRepository.save(availability);
     }
 
     private AvailabilityReadOnlyDTO mapToReadOnlyDTO(
