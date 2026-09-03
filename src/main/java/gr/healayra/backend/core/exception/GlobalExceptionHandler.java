@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -143,6 +144,26 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 "Invalid request body",
+                request.getRequestURI(),
+                null
+        );
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiErrorResponse> handleMethodNotSupported(
+            HttpRequestMethodNotSupportedException exception,
+            HttpServletRequest request
+    ) {
+
+        log.warn(
+                "HTTP method not allowed for request={} with method={}",
+                request.getRequestURI(),
+                exception.getMethod()
+        );
+
+        return buildResponse(
+                HttpStatus.METHOD_NOT_ALLOWED,
+                "HTTP method is not allowed for this endpoint",
                 request.getRequestURI(),
                 null
         );
