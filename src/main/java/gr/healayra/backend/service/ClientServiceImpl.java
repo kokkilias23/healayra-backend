@@ -96,6 +96,21 @@ public class ClientServiceImpl implements IClientService {
     }
 
     @Override
+    public List<ClientReadOnlyDTO> searchClients(
+            String query
+    ) {
+
+        return clientRepository
+                .findByDeletedFalseAndFirstNameContainingIgnoreCaseOrDeletedFalseAndLastNameContainingIgnoreCase(
+                        query,
+                        query
+                )
+                .stream()
+                .map(this::mapToReadOnlyDTO)
+                .toList();
+    }
+
+    @Override
     public ClientReadOnlyDTO updateClient(
             Long clientId,
             ClientUpdateDTO dto

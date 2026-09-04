@@ -52,6 +52,17 @@ public class ClientController {
         return ResponseEntity.ok(clients);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<ClientReadOnlyDTO>> searchClients(
+            @RequestParam String query
+    ) {
+
+        List<ClientReadOnlyDTO> clients =
+                clientService.searchClients(query);
+
+        return ResponseEntity.ok(clients);
+    }
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<ClientReadOnlyDTO> getClientByUserId(
             @PathVariable Long userId

@@ -16,6 +16,8 @@ public interface IClientService {
 
     List<ClientReadOnlyDTO> getAllClients();
 
+    List<ClientReadOnlyDTO> searchClients(String query);
+
     ClientReadOnlyDTO updateClient(
             Long clientId,
             ClientUpdateDTO dto

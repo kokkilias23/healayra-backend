@@ -19,4 +19,10 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     Optional<Client> findByUserEmailAndDeletedFalse(String email);
 
     List<Client> findAllByDeletedFalse();
+
+    List<Client>
+    findByDeletedFalseAndFirstNameContainingIgnoreCaseOrDeletedFalseAndLastNameContainingIgnoreCase(
+            String firstName,
+            String lastName
+    );
 }
