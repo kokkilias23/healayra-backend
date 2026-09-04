@@ -16,3 +16,4 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 
     List<Doctor> findAllByDeletedFalse();
 }
+// TODO: add search by first name / last name
