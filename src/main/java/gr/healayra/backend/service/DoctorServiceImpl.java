@@ -159,4 +159,4 @@ public class DoctorServiceImpl implements IDoctorService {
                 doctor.getPhone()
         );
     }
-}
+}// TODO: add search by first name / last name V.2.

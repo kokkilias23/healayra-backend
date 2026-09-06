@@ -168,3 +168,4 @@ public class ClientServiceImpl implements IClientService {
         );
     }
 }
+// TODO: add search by first name / last name V.2.

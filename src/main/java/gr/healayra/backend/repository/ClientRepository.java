@@ -26,3 +26,4 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
             String lastName
     );
 }
+// // TODO: add search by first name / last name V.2.
