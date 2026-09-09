@@ -67,13 +67,13 @@ class AppointmentControllerTest {
             throws Exception {
 
         LocalDateTime appointmentTime =
-                LocalDateTime.of(
-                        2026,
-                        9,
-                        14,
-                        10,
-                        0
-                );
+                LocalDateTime.now()
+                        .plusDays(7)
+                        .withHour(10)
+                        .withMinute(0)
+                        .withSecond(0)
+                        .withNano(0);
+
 
         AppointmentCreateDTO request =
                 new AppointmentCreateDTO(
