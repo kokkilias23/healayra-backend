@@ -49,17 +49,24 @@ class AppointmentControllerTest {
     void setUp() {
 
         AppointmentController appointmentController =
-                new AppointmentController(appointmentService);
+                new AppointmentController(
+                        appointmentService
+                );
 
         mockMvc = MockMvcBuilders
-                .standaloneSetup(appointmentController)
+                .standaloneSetup(
+                        appointmentController
+                )
                 .setControllerAdvice(
                         new GlobalExceptionHandler()
                 )
                 .build();
 
-        objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules();
+        objectMapper =
+                new ObjectMapper();
+
+        objectMapper
+                .findAndRegisterModules();
     }
 
     @Test
@@ -67,13 +74,7 @@ class AppointmentControllerTest {
             throws Exception {
 
         LocalDateTime appointmentTime =
-                LocalDateTime.now()
-                        .plusDays(7)
-                        .withHour(10)
-                        .withMinute(0)
-                        .withSecond(0)
-                        .withNano(0);
-
+                futureAppointmentTime();
 
         AppointmentCreateDTO request =
                 new AppointmentCreateDTO(
@@ -92,15 +93,26 @@ class AppointmentControllerTest {
                 );
 
         when(
-                appointmentService.createAppointment(
-                        any(AppointmentCreateDTO.class),
-                        eq("client@healayra.gr")
-                )
-        ).thenReturn(response);
+                appointmentService
+                        .createAppointment(
+                                any(
+                                        AppointmentCreateDTO.class
+                                ),
+                                eq(
+                                        "client@healayra.gr"
+                                )
+                        )
+        ).thenReturn(
+                response
+        );
 
         mockMvc.perform(
-                        post("/api/appointments")
-                                .principal(clientPrincipal)
+                        post(
+                                "/api/appointments"
+                        )
+                                .principal(
+                                        clientPrincipal
+                                )
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -128,7 +140,9 @@ class AppointmentControllerTest {
                 )
                 .andExpect(
                         jsonPath("$.status")
-                                .value("PENDING")
+                                .value(
+                                        "PENDING"
+                                )
                 );
     }
 
@@ -137,13 +151,7 @@ class AppointmentControllerTest {
             throws Exception {
 
         LocalDateTime appointmentTime =
-                LocalDateTime.of(
-                        2026,
-                        9,
-                        14,
-                        10,
-                        0
-                );
+                futureAppointmentTime();
 
         AppointmentCreateDTO request =
                 new AppointmentCreateDTO(
@@ -152,10 +160,15 @@ class AppointmentControllerTest {
                 );
 
         when(
-                appointmentService.createAppointment(
-                        any(AppointmentCreateDTO.class),
-                        eq("client@healayra.gr")
-                )
+                appointmentService
+                        .createAppointment(
+                                any(
+                                        AppointmentCreateDTO.class
+                                ),
+                                eq(
+                                        "client@healayra.gr"
+                                )
+                        )
         ).thenThrow(
                 new ConflictException(
                         "Appointment slot already booked"
@@ -163,8 +176,12 @@ class AppointmentControllerTest {
         );
 
         mockMvc.perform(
-                        post("/api/appointments")
-                                .principal(clientPrincipal)
+                        post(
+                                "/api/appointments"
+                        )
+                                .principal(
+                                        clientPrincipal
+                                )
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -204,31 +221,34 @@ class AppointmentControllerTest {
                         100L,
                         1L,
                         10L,
-                        LocalDateTime.of(
-                                2026,
-                                9,
-                                14,
-                                10,
-                                0
-                        ),
+                        futureAppointmentTime(),
                         AppointmentStatus.CONFIRMED,
                         null
                 );
 
         when(
-                appointmentService.updateStatus(
-                        eq(100L),
-                        any(AppointmentUpdateStatusDTO.class),
-                        eq("doctor@healayra.gr")
-                )
-        ).thenReturn(response);
+                appointmentService
+                        .updateStatus(
+                                eq(100L),
+                                any(
+                                        AppointmentUpdateStatusDTO.class
+                                ),
+                                eq(
+                                        "doctor@healayra.gr"
+                                )
+                        )
+        ).thenReturn(
+                response
+        );
 
         mockMvc.perform(
                         patch(
                                 "/api/appointments/{id}/status",
                                 100L
                         )
-                                .principal(doctorPrincipal)
+                                .principal(
+                                        doctorPrincipal
+                                )
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -244,7 +264,9 @@ class AppointmentControllerTest {
                 )
                 .andExpect(
                         jsonPath("$.status")
-                                .value("CONFIRMED")
+                                .value(
+                                        "CONFIRMED"
+                                )
                 );
     }
 
@@ -258,11 +280,16 @@ class AppointmentControllerTest {
                 );
 
         when(
-                appointmentService.updateStatus(
-                        eq(100L),
-                        any(AppointmentUpdateStatusDTO.class),
-                        eq("doctor@healayra.gr")
-                )
+                appointmentService
+                        .updateStatus(
+                                eq(100L),
+                                any(
+                                        AppointmentUpdateStatusDTO.class
+                                ),
+                                eq(
+                                        "doctor@healayra.gr"
+                                )
+                        )
         ).thenThrow(
                 new BadRequestException(
                         "Invalid appointment status transition from PENDING to COMPLETED"
@@ -274,7 +301,9 @@ class AppointmentControllerTest {
                                 "/api/appointments/{id}/status",
                                 100L
                         )
-                                .principal(doctorPrincipal)
+                                .principal(
+                                        doctorPrincipal
+                                )
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -310,11 +339,16 @@ class AppointmentControllerTest {
                 );
 
         when(
-                appointmentService.updateStatus(
-                        eq(100L),
-                        any(AppointmentUpdateStatusDTO.class),
-                        eq("doctor@healayra.gr")
-                )
+                appointmentService
+                        .updateStatus(
+                                eq(100L),
+                                any(
+                                        AppointmentUpdateStatusDTO.class
+                                ),
+                                eq(
+                                        "doctor@healayra.gr"
+                                )
+                        )
         ).thenThrow(
                 new ForbiddenException(
                         "You do not have permission to access this appointment"
@@ -326,7 +360,9 @@ class AppointmentControllerTest {
                                 "/api/appointments/{id}/status",
                                 100L
                         )
-                                .principal(doctorPrincipal)
+                                .principal(
+                                        doctorPrincipal
+                                )
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -364,19 +400,38 @@ class AppointmentControllerTest {
                 """;
 
         mockMvc.perform(
-                        post("/api/appointments")
-                                .principal(clientPrincipal)
+                        post(
+                                "/api/appointments"
+                        )
+                                .principal(
+                                        clientPrincipal
+                                )
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
-                                .content(invalidRequest)
+                                .content(
+                                        invalidRequest
+                                )
                 )
                 .andExpect(
                         status().isBadRequest()
                 )
                 .andExpect(
                         jsonPath("$.message")
-                                .value("Validation failed")
+                                .value(
+                                        "Validation failed"
+                                )
                 );
+    }
+
+    private LocalDateTime futureAppointmentTime() {
+
+        return LocalDateTime
+                .now()
+                .plusDays(7)
+                .withHour(10)
+                .withMinute(0)
+                .withSecond(0)
+                .withNano(0);
     }
 }
