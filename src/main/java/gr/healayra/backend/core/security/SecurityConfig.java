@@ -46,6 +46,7 @@ public class SecurityConfig {
                         )
                 )
 
+                // CSRF protection is disabled because authentication is stateless and JWT-based.
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
@@ -160,6 +161,7 @@ public class SecurityConfig {
                                 )
                 )
 
+                // Do not create server-side sessions; every request must authenticate through JWT.
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
@@ -170,6 +172,7 @@ public class SecurityConfig {
                         authenticationProvider
                 )
 
+                // Validate JWTs before Spring Security's username/password authentication filter.
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
@@ -215,6 +218,7 @@ public class SecurityConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
+        // Allow the local React development server to call the backend API.
         configuration.setAllowedOrigins(
                 List.of(
                         "http://localhost:5173"

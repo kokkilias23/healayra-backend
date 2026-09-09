@@ -18,6 +18,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email)
             throws UsernameNotFoundException {
 
+        // Load only active users so soft-deleted accounts cannot authenticate.
         User user = userRepository
                 .findByEmailAndDeletedFalse(email)
                 .orElseThrow(() ->
@@ -26,6 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                         )
                 );
 
+        // Convert the application's User entity into Spring Security UserDetails.
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getPassword())

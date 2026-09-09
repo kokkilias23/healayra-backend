@@ -21,6 +21,7 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
+    // Create a signed JWT using the authenticated user's email as its subject.
     public String generateToken(UserDetails userDetails) {
 
         Date now = new Date();
@@ -35,6 +36,7 @@ public class JwtService {
                 .compact();
     }
 
+    // Extract the email stored in the JWT subject claim.
     public String extractUsername(String token) {
         return extractClaim(
                 token,
@@ -42,6 +44,7 @@ public class JwtService {
         );
     }
 
+    // Accept the token only when it belongs to this user and has not expired.
     public boolean isTokenValid(
             String token,
             UserDetails userDetails
@@ -75,6 +78,7 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
+    // Parse the token and verify its signature before exposing its claims.
     private Claims extractAllClaims(String token) {
 
         return Jwts.parser()
@@ -84,6 +88,7 @@ public class JwtService {
                 .getPayload();
     }
 
+    // Decode the Base64 secret and create the HMAC key used to sign JWTs.
     private SecretKey getSigningKey() {
 
         byte[] keyBytes =

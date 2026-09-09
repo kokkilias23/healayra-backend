@@ -34,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authorizationHeader =
                 request.getHeader("Authorization");
 
+        // Skip JWT authentication when the request does not contain a Bearer token.
         if (authorizationHeader == null
                 || !authorizationHeader.startsWith("Bearer ")) {
 
@@ -41,6 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Remove the "Bearer " prefix and keep only the raw JWT.
         String jwt =
                 authorizationHeader.substring(7);
 
@@ -49,6 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String email =
                     jwtService.extractUsername(jwt);
 
+            // Authenticate only when no authentication has already been established.
             if (email != null
                     && SecurityContextHolder
                     .getContext()
@@ -58,6 +61,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         customUserDetailsService
                                 .loadUserByUsername(email);
 
+                // Verify the token before trusting the user information it contains.
                 if (jwtService.isTokenValid(
                         jwt,
                         userDetails
@@ -70,11 +74,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     userDetails.getAuthorities()
                             );
 
+                    // Store the authenticated user in Spring Security's context for this request.
                     SecurityContextHolder
                             .getContext()
                             .setAuthentication(authentication);
                 }
             }
+
 
         } catch (
                 JwtException
@@ -82,6 +88,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 | AuthenticationException exception
         ) {
 
+            // Invalid, malformed or expired tokens continue as unauthenticated requests.
             SecurityContextHolder.clearContext();
         }
 

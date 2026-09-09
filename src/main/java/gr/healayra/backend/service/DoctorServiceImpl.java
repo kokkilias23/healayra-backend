@@ -35,6 +35,7 @@ public class DoctorServiceImpl implements IDoctorService {
                         )
                 );
 
+        // Prevent multiple doctor profiles from being linked to the same user account.
         boolean doctorAlreadyExists =
                 doctorRepository
                         .findByUserId(dto.userId())
@@ -139,6 +140,7 @@ public class DoctorServiceImpl implements IDoctorService {
 
         User user = doctor.getUser();
 
+        // Disable both the doctor profile and its linked authentication account.
         doctor.softDelete();
         user.softDelete();
 
@@ -159,4 +161,6 @@ public class DoctorServiceImpl implements IDoctorService {
                 doctor.getPhone()
         );
     }
-}// TODO: add search by first name / last name V.2.
+}
+
+// TODO: add search by first name / last name V.2.

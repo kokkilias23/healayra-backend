@@ -35,12 +35,14 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
                         )
                 );
 
+        // A working period is valid only when the start time is before the end time.
         if (!dto.startTime().isBefore(dto.endTime())) {
             throw new BadRequestException(
                     "Start time must be before end time"
             );
         }
 
+        // Keep only one active availability record per doctor and weekday.
         boolean alreadyExists =
                 availabilityRepository
                         .findByDoctorIdAndDayOfWeekAndDeletedFalse(
@@ -114,6 +116,7 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
                                 )
                         );
 
+        // Revalidate the working time range before updating the schedule.
         if (!dto.startTime().isBefore(dto.endTime())) {
             throw new BadRequestException(
                     "Start time must be before end time"
@@ -145,6 +148,7 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
                                 )
                         );
 
+        // Preserve availability history by marking the record as deleted.
         availability.softDelete();
 
         availabilityRepository.save(availability);

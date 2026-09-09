@@ -37,6 +37,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
             String clientEmail
     ) {
 
+        // Resolve the doctor selected for the appointment.
         Doctor doctor = doctorRepository
                 .findByIdAndDeletedFalse(dto.doctorId())
                 .orElseThrow(() ->
@@ -45,6 +46,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
                         )
                 );
 
+        // Resolve the authenticated client's profile from the JWT email.
         Client client = clientRepository
                 .findByUserEmailAndDeletedFalse(clientEmail)
                 .orElseThrow(() ->
@@ -53,6 +55,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
                         )
                 );
 
+        // Find the doctor's configured availability for the selected weekday.
         Availability availability =
                 availabilityRepository
                         .findByDoctorIdAndDayOfWeekAndDeletedFalse(
@@ -65,6 +68,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
                                 )
                         );
 
+        // Disabled availability must never accept new appointments.
         if (!availability.isEnabled()) {
             throw new BadRequestException(
                     "Doctor is not available on this day"
@@ -74,11 +78,13 @@ public class AppointmentServiceImpl implements IAppointmentService {
         LocalTime appointmentStart =
                 dto.appointmentTime().toLocalTime();
 
+        // Calculate the end of the session using the doctor's configured duration.
         LocalTime appointmentEnd =
                 appointmentStart.plusMinutes(
                         availability.getSessionDuration()
                 );
 
+        // Reject appointments that fall outside the doctor's working hours.
         if (appointmentStart.isBefore(
                 availability.getStartTime()
         ) || appointmentEnd.isAfter(
@@ -90,12 +96,14 @@ public class AppointmentServiceImpl implements IAppointmentService {
             );
         }
 
+        // Calculate the offset from the beginning of the working period.
         long minutesFromAvailabilityStart =
                 Duration.between(
                         availability.getStartTime(),
                         appointmentStart
                 ).toMinutes();
 
+        // Ensure the requested time starts exactly on a valid session boundary.
         if (minutesFromAvailabilityStart
                 % availability.getSessionDuration() != 0) {
 
@@ -104,6 +112,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
             );
         }
 
+        // Prevent the same doctor from being double-booked for the same time slot.
         boolean alreadyBooked =
                 appointmentRepository
                         .existsByDoctorIdAndAppointmentTimeAndDeletedFalse(
@@ -121,6 +130,8 @@ public class AppointmentServiceImpl implements IAppointmentService {
                 .doctor(doctor)
                 .client(client)
                 .appointmentTime(dto.appointmentTime())
+
+                // New appointments start as pending until the doctor confirms them.
                 .status(AppointmentStatus.PENDING)
                 .build();
 

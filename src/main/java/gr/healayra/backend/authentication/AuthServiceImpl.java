@@ -33,21 +33,25 @@ public class AuthServiceImpl implements IAuthService {
     @Transactional
     public AuthResponseDTO register(RegisterRequestDTO dto) {
 
+// Prevent duplicate accounts from being registered with the same email.
         if (userRepository.existsByEmail(dto.email())) {
             throw new ConflictException(
                     "Email already exists"
             );
         }
 
+// Create the authentication account.
+// Public registration currently creates CLIENT users only.
         User user = User.builder()
                 .email(dto.email())
-                .password(passwordEncoder.encode(dto.password()))
+                .password(passwordEncoder.encode(dto.password())) // Store only the BCrypt hash, never the plain-text password.
                 .role(Role.CLIENT)
                 .build();
 
         User savedUser =
                 userRepository.save(user);
 
+        // Create the client profile linked to the newly registered user account.
         Client client = Client.builder()
                 .user(savedUser)
                 .firstName(dto.firstName())
@@ -62,6 +66,7 @@ public class AuthServiceImpl implements IAuthService {
                         savedUser.getEmail()
                 );
 
+        // Issue a JWT immediately so registration also signs the user in.
         String token =
                 jwtService.generateToken(userDetails);
 
@@ -76,6 +81,7 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     public AuthResponseDTO login(LoginRequestDTO dto) {
 
+        // Delegate email/password validation to Spring Security.
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         dto.email(),
@@ -96,6 +102,7 @@ public class AuthServiceImpl implements IAuthService {
                         user.getEmail()
                 );
 
+        // Generate a new JWT after successful authentication.
         String token =
                 jwtService.generateToken(userDetails);
 

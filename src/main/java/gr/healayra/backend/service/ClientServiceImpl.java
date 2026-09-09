@@ -33,6 +33,7 @@ public class ClientServiceImpl implements IClientService {
                         )
                 );
 
+        // Prevent multiple client profiles from being linked to the same user account.
         boolean clientAlreadyExists =
                 clientRepository
                         .findByUserId(dto.userId())
@@ -100,6 +101,7 @@ public class ClientServiceImpl implements IClientService {
             String query
     ) {
 
+        // Search active clients by first or last name without case sensitivity.
         return clientRepository
                 .findByDeletedFalseAndFirstNameContainingIgnoreCaseOrDeletedFalseAndLastNameContainingIgnoreCase(
                         query,
@@ -148,6 +150,7 @@ public class ClientServiceImpl implements IClientService {
 
         User user = client.getUser();
 
+        // Disable both the client profile and its linked authentication account.
         client.softDelete();
         user.softDelete();
 
@@ -168,4 +171,3 @@ public class ClientServiceImpl implements IClientService {
         );
     }
 }
-// TODO: add search by first name / last name V.2.
