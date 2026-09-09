@@ -5,6 +5,7 @@ import gr.healayra.backend.core.security.filter.JwtAuthenticationFilter;
 import gr.healayra.backend.core.security.handler.CustomAccessDeniedHandler;
 import gr.healayra.backend.core.security.handler.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,6 +23,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -32,6 +34,9 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -46,7 +51,6 @@ public class SecurityConfig {
                         )
                 )
 
-                // CSRF protection is disabled because authentication is stateless and JWT-based.
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
@@ -125,7 +129,7 @@ public class SecurityConfig {
                                 "DOCTOR"
                         )
 
-                        // CLIENT can create an appointment
+                        // Client can create an appointment
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/appointments"
@@ -133,7 +137,7 @@ public class SecurityConfig {
                                 "CLIENT"
                         )
 
-                        // CLIENT can see only their own appointments
+                        // Client can see their own appointments
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/appointments/me"
@@ -161,7 +165,6 @@ public class SecurityConfig {
                                 )
                 )
 
-                // Do not create server-side sessions; every request must authenticate through JWT.
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
@@ -172,7 +175,6 @@ public class SecurityConfig {
                         authenticationProvider
                 )
 
-                // Validate JWTs before Spring Security's username/password authentication filter.
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
@@ -218,11 +220,18 @@ public class SecurityConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-        // Allow the local React development server to call the backend API.
+        List<String> origins =
+                Arrays.stream(
+                                allowedOrigins.split(",")
+                        )
+                        .map(String::trim)
+                        .filter(origin ->
+                                !origin.isBlank()
+                        )
+                        .toList();
+
         configuration.setAllowedOrigins(
-                List.of(
-                        "http://localhost:5173"
-                )
+                origins
         );
 
         configuration.setAllowedMethods(
