@@ -5,6 +5,7 @@ import gr.healayra.backend.model.AppointmentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,8 +23,9 @@ public interface AppointmentRepository
             AppointmentStatus status
     );
 
-    boolean existsByDoctorIdAndAppointmentTimeAndDeletedFalse(
+    boolean existsByDoctorIdAndAppointmentTimeAndStatusInAndDeletedFalse(
             Long doctorId,
-            LocalDateTime appointmentTime
+            LocalDateTime appointmentTime,
+            Collection<AppointmentStatus> statuses
     );
 }

@@ -116,9 +116,13 @@ public class AppointmentServiceImpl implements IAppointmentService {
         // Prevent the same doctor from being double-booked for the same time slot.
         boolean alreadyBooked =
                 appointmentRepository
-                        .existsByDoctorIdAndAppointmentTimeAndDeletedFalse(
+                        .existsByDoctorIdAndAppointmentTimeAndStatusInAndDeletedFalse(
                                 dto.doctorId(),
-                                dto.appointmentTime()
+                                dto.appointmentTime(),
+                                List.of(
+                                        AppointmentStatus.PENDING,
+                                        AppointmentStatus.CONFIRMED
+                                )
                         );
 
         if (alreadyBooked) {
