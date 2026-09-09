@@ -8,7 +8,10 @@ import java.util.List;
 
 public interface IDoctorService {
 
-    DoctorReadOnlyDTO createDoctor(DoctorCreateDTO dto);
+    DoctorReadOnlyDTO createDoctor(
+            DoctorCreateDTO dto,
+            String doctorEmail
+    );
 
     DoctorReadOnlyDTO getDoctorById(Long id);
 
@@ -18,8 +21,12 @@ public interface IDoctorService {
 
     DoctorReadOnlyDTO updateDoctor(
             Long doctorId,
-            DoctorUpdateDTO dto
+            DoctorUpdateDTO dto,
+            String doctorEmail
     );
 
-    void deleteDoctor(Long doctorId);
+    void deleteDoctor(
+            Long doctorId,
+            String doctorEmail
+    );
 }

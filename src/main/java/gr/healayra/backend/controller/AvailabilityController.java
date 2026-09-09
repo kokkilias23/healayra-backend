@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -21,11 +22,15 @@ public class AvailabilityController {
 
     @PostMapping
     public ResponseEntity<AvailabilityReadOnlyDTO> createAvailability(
-            @Valid @RequestBody AvailabilityCreateDTO dto
+            @Valid @RequestBody AvailabilityCreateDTO dto,
+            Principal principal
     ) {
 
         AvailabilityReadOnlyDTO createdAvailability =
-                availabilityService.createAvailability(dto);
+                availabilityService.createAvailability(
+                        dto,
+                        principal.getName()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -57,21 +62,30 @@ public class AvailabilityController {
     @PutMapping("/{id}")
     public ResponseEntity<AvailabilityReadOnlyDTO> updateAvailability(
             @PathVariable Long id,
-            @Valid @RequestBody AvailabilityUpdateDTO dto
+            @Valid @RequestBody AvailabilityUpdateDTO dto,
+            Principal principal
     ) {
 
         AvailabilityReadOnlyDTO updatedAvailability =
-                availabilityService.updateAvailability(id, dto);
+                availabilityService.updateAvailability(
+                        id,
+                        dto,
+                        principal.getName()
+                );
 
         return ResponseEntity.ok(updatedAvailability);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAvailability(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Principal principal
     ) {
 
-        availabilityService.deleteAvailability(id);
+        availabilityService.deleteAvailability(
+                id,
+                principal.getName()
+        );
 
         return ResponseEntity.noContent().build();
     }

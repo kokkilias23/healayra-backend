@@ -1,5 +1,6 @@
 package gr.healayra.backend.service;
 
+import gr.healayra.backend.core.exception.ForbiddenException;
 import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.visit.VisitCreateDTO;
 import gr.healayra.backend.dto.visit.VisitReadOnlyDTO;
@@ -24,7 +25,8 @@ public class VisitServiceImpl implements IVisitService {
 
     @Override
     public VisitReadOnlyDTO createVisit(
-            VisitCreateDTO dto
+            VisitCreateDTO dto,
+            String doctorEmail
     ) {
 
         Doctor doctor = doctorRepository
@@ -34,6 +36,12 @@ public class VisitServiceImpl implements IVisitService {
                                 "Doctor not found"
                         )
                 );
+
+        // A doctor can create visits only under their own profile.
+        validateDoctorOwnership(
+                doctor,
+                doctorEmail
+        );
 
         Client client = clientRepository
                 .findByIdAndDeletedFalse(dto.clientId())
@@ -58,7 +66,8 @@ public class VisitServiceImpl implements IVisitService {
 
     @Override
     public VisitReadOnlyDTO getVisitById(
-            Long id
+            Long id,
+            String doctorEmail
     ) {
 
         Visit visit = visitRepository
@@ -69,16 +78,29 @@ public class VisitServiceImpl implements IVisitService {
                         )
                 );
 
+        // A doctor can view only their own visits.
+        validateDoctorOwnership(
+                visit.getDoctor(),
+                doctorEmail
+        );
+
         return mapToReadOnlyDTO(visit);
     }
 
     @Override
     public List<VisitReadOnlyDTO> getVisitsByClient(
-            Long clientId
+            Long clientId,
+            String doctorEmail
     ) {
 
+        Doctor doctor =
+                getDoctorByEmail(doctorEmail);
+
         return visitRepository
-                .findByClientIdAndDeletedFalse(clientId)
+                .findByDoctorIdAndClientIdAndDeletedFalse(
+                        doctor.getId(),
+                        clientId
+                )
                 .stream()
                 .map(this::mapToReadOnlyDTO)
                 .toList();
@@ -87,8 +109,22 @@ public class VisitServiceImpl implements IVisitService {
     @Override
     public List<VisitReadOnlyDTO> getVisitsByDoctorAndClient(
             Long doctorId,
-            Long clientId
+            Long clientId,
+            String doctorEmail
     ) {
+
+        Doctor doctor = doctorRepository
+                .findByIdAndDeletedFalse(doctorId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Doctor not found"
+                        )
+                );
+
+        validateDoctorOwnership(
+                doctor,
+                doctorEmail
+        );
 
         return visitRepository
                 .findByDoctorIdAndClientIdAndDeletedFalse(
@@ -102,7 +138,8 @@ public class VisitServiceImpl implements IVisitService {
 
     @Override
     public void deleteVisit(
-            Long visitId
+            Long visitId,
+            String doctorEmail
     ) {
 
         Visit visit = visitRepository
@@ -113,9 +150,42 @@ public class VisitServiceImpl implements IVisitService {
                         )
                 );
 
+        // A doctor can delete only their own visits.
+        validateDoctorOwnership(
+                visit.getDoctor(),
+                doctorEmail
+        );
+
         visit.softDelete();
 
         visitRepository.save(visit);
+    }
+    private Doctor getDoctorByEmail(
+            String doctorEmail
+    ) {
+
+        return doctorRepository
+                .findByUserEmailAndDeletedFalse(doctorEmail)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Doctor profile not found"
+                        )
+                );
+    }
+
+    private void validateDoctorOwnership(
+            Doctor doctor,
+            String doctorEmail
+    ) {
+
+        if (!doctor.getUser()
+                .getEmail()
+                .equals(doctorEmail)) {
+
+            throw new ForbiddenException(
+                    "You do not have permission to access this visit"
+            );
+        }
     }
 
     private VisitReadOnlyDTO mapToReadOnlyDTO(

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -20,11 +21,15 @@ public class VisitController {
 
     @PostMapping
     public ResponseEntity<VisitReadOnlyDTO> createVisit(
-            @Valid @RequestBody VisitCreateDTO dto
+            @Valid @RequestBody VisitCreateDTO dto,
+            Principal principal
     ) {
 
         VisitReadOnlyDTO createdVisit =
-                visitService.createVisit(dto);
+                visitService.createVisit(
+                        dto,
+                        principal.getName()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -33,22 +38,30 @@ public class VisitController {
 
     @GetMapping("/{id}")
     public ResponseEntity<VisitReadOnlyDTO> getVisitById(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Principal principal
     ) {
 
         VisitReadOnlyDTO visit =
-                visitService.getVisitById(id);
+                visitService.getVisitById(
+                        id,
+                        principal.getName()
+                );
 
         return ResponseEntity.ok(visit);
     }
 
     @GetMapping("/client/{clientId}")
     public ResponseEntity<List<VisitReadOnlyDTO>> getVisitsByClient(
-            @PathVariable Long clientId
+            @PathVariable Long clientId,
+            Principal principal
     ) {
 
         List<VisitReadOnlyDTO> visits =
-                visitService.getVisitsByClient(clientId);
+                visitService.getVisitsByClient(
+                        clientId,
+                        principal.getName()
+                );
 
         return ResponseEntity.ok(visits);
     }
@@ -56,13 +69,15 @@ public class VisitController {
     @GetMapping("/doctor/{doctorId}/client/{clientId}")
     public ResponseEntity<List<VisitReadOnlyDTO>> getVisitsByDoctorAndClient(
             @PathVariable Long doctorId,
-            @PathVariable Long clientId
+            @PathVariable Long clientId,
+            Principal principal
     ) {
 
         List<VisitReadOnlyDTO> visits =
                 visitService.getVisitsByDoctorAndClient(
                         doctorId,
-                        clientId
+                        clientId,
+                        principal.getName()
                 );
 
         return ResponseEntity.ok(visits);
@@ -70,10 +85,14 @@ public class VisitController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteVisit(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Principal principal
     ) {
 
-        visitService.deleteVisit(id);
+        visitService.deleteVisit(
+                id,
+                principal.getName()
+        );
 
         return ResponseEntity.noContent().build();
     }

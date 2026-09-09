@@ -52,42 +52,59 @@ public class AppointmentController {
 
     @GetMapping("/{id}")
     public ResponseEntity<AppointmentReadOnlyDTO> getAppointmentById(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Principal principal
     ) {
 
         return ResponseEntity.ok(
-                appointmentService.getAppointmentById(id)
+                appointmentService.getAppointmentById(
+                        id,
+                        principal.getName()
+                )
         );
     }
 
     @GetMapping("/doctor/{doctorId}")
     public ResponseEntity<List<AppointmentReadOnlyDTO>> getAppointmentsByDoctor(
-            @PathVariable Long doctorId
+            @PathVariable Long doctorId,
+            Principal principal
     ) {
 
         return ResponseEntity.ok(
-                appointmentService.getAppointmentsByDoctor(doctorId)
+                appointmentService.getAppointmentsByDoctor(
+                        doctorId,
+                        principal.getName()
+                )
         );
     }
 
     @GetMapping("/client/{clientId}")
     public ResponseEntity<List<AppointmentReadOnlyDTO>> getAppointmentsByClient(
-            @PathVariable Long clientId
+            @PathVariable Long clientId,
+            Principal principal
     ) {
 
         return ResponseEntity.ok(
-                appointmentService.getAppointmentsByClient(clientId)
+                appointmentService.getAppointmentsByClient(
+                        clientId,
+                        principal.getName()
+                )
         );
     }
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<AppointmentReadOnlyDTO> updateAppointmentStatus(
             @PathVariable Long id,
-            @Valid @RequestBody AppointmentUpdateStatusDTO dto
+            @Valid @RequestBody AppointmentUpdateStatusDTO dto,
+            Principal principal
     ) {
 
         return ResponseEntity.ok(
-                appointmentService.updateStatus(id, dto)
+                appointmentService.updateStatus(
+                        id,
+                        dto,
+                        principal.getName()
+                )
         );
     }
 }

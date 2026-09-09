@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -21,11 +22,15 @@ public class NoteController {
 
     @PostMapping
     public ResponseEntity<NoteReadOnlyDTO> createNote(
-            @Valid @RequestBody NoteCreateDTO dto
+            @Valid @RequestBody NoteCreateDTO dto,
+            Principal principal
     ) {
 
         NoteReadOnlyDTO createdNote =
-                noteService.createNote(dto);
+                noteService.createNote(
+                        dto,
+                        principal.getName()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -34,44 +39,58 @@ public class NoteController {
 
     @GetMapping("/{id}")
     public ResponseEntity<NoteReadOnlyDTO> getNoteById(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Principal principal
     ) {
 
-        NoteReadOnlyDTO note =
-                noteService.getNoteById(id);
-
-        return ResponseEntity.ok(note);
+        return ResponseEntity.ok(
+                noteService.getNoteById(
+                        id,
+                        principal.getName()
+                )
+        );
     }
 
     @GetMapping("/visit/{visitId}")
     public ResponseEntity<List<NoteReadOnlyDTO>> getNotesByVisit(
-            @PathVariable Long visitId
+            @PathVariable Long visitId,
+            Principal principal
     ) {
 
-        List<NoteReadOnlyDTO> notes =
-                noteService.getNotesByVisit(visitId);
-
-        return ResponseEntity.ok(notes);
+        return ResponseEntity.ok(
+                noteService.getNotesByVisit(
+                        visitId,
+                        principal.getName()
+                )
+        );
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<NoteReadOnlyDTO> updateNote(
             @PathVariable Long id,
-            @Valid @RequestBody NoteUpdateDTO dto
+            @Valid @RequestBody NoteUpdateDTO dto,
+            Principal principal
     ) {
 
-        NoteReadOnlyDTO updatedNote =
-                noteService.updateNote(id, dto);
-
-        return ResponseEntity.ok(updatedNote);
+        return ResponseEntity.ok(
+                noteService.updateNote(
+                        id,
+                        dto,
+                        principal.getName()
+                )
+        );
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNote(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Principal principal
     ) {
 
-        noteService.deleteNote(id);
+        noteService.deleteNote(
+                id,
+                principal.getName()
+        );
 
         return ResponseEntity.noContent().build();
     }

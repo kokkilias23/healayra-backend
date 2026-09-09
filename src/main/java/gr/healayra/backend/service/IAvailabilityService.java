@@ -8,7 +8,10 @@ import java.util.List;
 
 public interface IAvailabilityService {
 
-    AvailabilityReadOnlyDTO createAvailability(AvailabilityCreateDTO dto);
+    AvailabilityReadOnlyDTO createAvailability(
+            AvailabilityCreateDTO dto,
+            String doctorEmail
+    );
 
     AvailabilityReadOnlyDTO getAvailabilityById(Long id);
 
@@ -16,8 +19,12 @@ public interface IAvailabilityService {
 
     AvailabilityReadOnlyDTO updateAvailability(
             Long availabilityId,
-            AvailabilityUpdateDTO dto
+            AvailabilityUpdateDTO dto,
+            String doctorEmail
     );
 
-    void deleteAvailability(Long availabilityId);
+    void deleteAvailability(
+            Long availabilityId,
+            String doctorEmail
+    );
 }

@@ -14,6 +14,9 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 
     Optional<Doctor> findByUserIdAndDeletedFalse(Long userId);
 
+    Optional<Doctor> findByUserEmailAndDeletedFalse(String email);
+
     List<Doctor> findAllByDeletedFalse();
 }
+
 // TODO: add search by first name / last name V.2.

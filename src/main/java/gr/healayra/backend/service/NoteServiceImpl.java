@@ -1,5 +1,6 @@
 package gr.healayra.backend.service;
 
+import gr.healayra.backend.core.exception.ForbiddenException;
 import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.note.NoteCreateDTO;
 import gr.healayra.backend.dto.note.NoteReadOnlyDTO;
@@ -22,7 +23,8 @@ public class NoteServiceImpl implements INoteService {
 
     @Override
     public NoteReadOnlyDTO createNote(
-            NoteCreateDTO dto
+            NoteCreateDTO dto,
+            String doctorEmail
     ) {
 
         Visit visit = visitRepository
@@ -32,6 +34,12 @@ public class NoteServiceImpl implements INoteService {
                                 "Visit not found"
                         )
                 );
+
+        // A doctor can create notes only for their own visits.
+        validateVisitOwnership(
+                visit,
+                doctorEmail
+        );
 
         Note note = Note.builder()
                 .visit(visit)
@@ -46,7 +54,8 @@ public class NoteServiceImpl implements INoteService {
 
     @Override
     public NoteReadOnlyDTO getNoteById(
-            Long id
+            Long id,
+            String doctorEmail
     ) {
 
         Note note = noteRepository
@@ -57,13 +66,32 @@ public class NoteServiceImpl implements INoteService {
                         )
                 );
 
+        validateVisitOwnership(
+                note.getVisit(),
+                doctorEmail
+        );
+
         return mapToReadOnlyDTO(note);
     }
 
     @Override
     public List<NoteReadOnlyDTO> getNotesByVisit(
-            Long visitId
+            Long visitId,
+            String doctorEmail
     ) {
+
+        Visit visit = visitRepository
+                .findByIdAndDeletedFalse(visitId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Visit not found"
+                        )
+                );
+
+        validateVisitOwnership(
+                visit,
+                doctorEmail
+        );
 
         return noteRepository
                 .findByVisitIdAndDeletedFalse(visitId)
@@ -75,7 +103,8 @@ public class NoteServiceImpl implements INoteService {
     @Override
     public NoteReadOnlyDTO updateNote(
             Long noteId,
-            NoteUpdateDTO dto
+            NoteUpdateDTO dto,
+            String doctorEmail
     ) {
 
         Note note = noteRepository
@@ -85,6 +114,12 @@ public class NoteServiceImpl implements INoteService {
                                 "Note not found"
                         )
                 );
+
+        // A doctor can update only notes from their own visits.
+        validateVisitOwnership(
+                note.getVisit(),
+                doctorEmail
+        );
 
         note.setContent(dto.content());
 
@@ -96,7 +131,8 @@ public class NoteServiceImpl implements INoteService {
 
     @Override
     public void deleteNote(
-            Long noteId
+            Long noteId,
+            String doctorEmail
     ) {
 
         Note note = noteRepository
@@ -107,9 +143,31 @@ public class NoteServiceImpl implements INoteService {
                         )
                 );
 
+        // A doctor can delete only notes from their own visits.
+        validateVisitOwnership(
+                note.getVisit(),
+                doctorEmail
+        );
+
         note.softDelete();
 
         noteRepository.save(note);
+    }
+
+    private void validateVisitOwnership(
+            Visit visit,
+            String doctorEmail
+    ) {
+
+        if (!visit.getDoctor()
+                .getUser()
+                .getEmail()
+                .equals(doctorEmail)) {
+
+            throw new ForbiddenException(
+                    "You do not have permission to access this note"
+            );
+        }
     }
 
     private NoteReadOnlyDTO mapToReadOnlyDTO(

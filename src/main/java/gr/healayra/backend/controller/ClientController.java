@@ -1,15 +1,12 @@
 package gr.healayra.backend.controller;
 
-import gr.healayra.backend.dto.client.ClientCreateDTO;
 import gr.healayra.backend.dto.client.ClientReadOnlyDTO;
-import gr.healayra.backend.dto.client.ClientUpdateDTO;
 import gr.healayra.backend.service.IClientService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -19,80 +16,46 @@ public class ClientController {
 
     private final IClientService clientService;
 
-    @PostMapping
-    public ResponseEntity<ClientReadOnlyDTO> createClient(
-            @Valid @RequestBody ClientCreateDTO dto
-    ) {
-
-        ClientReadOnlyDTO createdClient =
-                clientService.createClient(dto);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(createdClient);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<ClientReadOnlyDTO> getClientById(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Principal principal
     ) {
 
         ClientReadOnlyDTO client =
-                clientService.getClientById(id);
+                clientService.getClientById(
+                        id,
+                        principal.getName()
+                );
 
         return ResponseEntity.ok(client);
     }
 
     @GetMapping
-    public ResponseEntity<List<ClientReadOnlyDTO>> getAllClients() {
+    public ResponseEntity<List<ClientReadOnlyDTO>> getAllClients(
+            Principal principal
+    ) {
 
         List<ClientReadOnlyDTO> clients =
-                clientService.getAllClients();
+                clientService.getAllClients(
+                        principal.getName()
+                );
 
         return ResponseEntity.ok(clients);
     }
 
     @GetMapping("/search")
     public ResponseEntity<List<ClientReadOnlyDTO>> searchClients(
-            @RequestParam String query
+            @RequestParam String query,
+            Principal principal
     ) {
 
         List<ClientReadOnlyDTO> clients =
-                clientService.searchClients(query);
+                clientService.searchClients(
+                        query,
+                        principal.getName()
+                );
 
         return ResponseEntity.ok(clients);
-    }
-
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<ClientReadOnlyDTO> getClientByUserId(
-            @PathVariable Long userId
-    ) {
-
-        ClientReadOnlyDTO client =
-                clientService.getClientByUserId(userId);
-
-        return ResponseEntity.ok(client);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ClientReadOnlyDTO> updateClient(
-            @PathVariable Long id,
-            @Valid @RequestBody ClientUpdateDTO dto
-    ) {
-
-        ClientReadOnlyDTO updatedClient =
-                clientService.updateClient(id, dto);
-
-        return ResponseEntity.ok(updatedClient);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteClient(
-            @PathVariable Long id
-    ) {
-
-        clientService.deleteClient(id);
-
-        return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,7 @@
 package gr.healayra.backend.service;
 
 import gr.healayra.backend.core.exception.ConflictException;
+import gr.healayra.backend.core.exception.ForbiddenException;
 import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.doctor.DoctorCreateDTO;
 import gr.healayra.backend.dto.doctor.DoctorReadOnlyDTO;
@@ -24,7 +25,8 @@ public class DoctorServiceImpl implements IDoctorService {
 
     @Override
     public DoctorReadOnlyDTO createDoctor(
-            DoctorCreateDTO dto
+            DoctorCreateDTO dto,
+            String doctorEmail
     ) {
 
         User user = userRepository
@@ -34,6 +36,13 @@ public class DoctorServiceImpl implements IDoctorService {
                                 "User not found"
                         )
                 );
+
+        // A doctor can create only their own doctor profile.
+        if (!user.getEmail().equals(doctorEmail)) {
+            throw new ForbiddenException(
+                    "You cannot create a doctor profile for another user"
+            );
+        }
 
         // Prevent multiple doctor profiles from being linked to the same user account.
         boolean doctorAlreadyExists =
@@ -104,7 +113,8 @@ public class DoctorServiceImpl implements IDoctorService {
     @Override
     public DoctorReadOnlyDTO updateDoctor(
             Long doctorId,
-            DoctorUpdateDTO dto
+            DoctorUpdateDTO dto,
+            String doctorEmail
     ) {
 
         Doctor doctor = doctorRepository
@@ -114,6 +124,12 @@ public class DoctorServiceImpl implements IDoctorService {
                                 "Doctor not found"
                         )
                 );
+
+        // A doctor can update only their own profile.
+        validateOwnership(
+                doctor,
+                doctorEmail
+        );
 
         doctor.setFirstName(dto.firstName());
         doctor.setLastName(dto.lastName());
@@ -128,7 +144,10 @@ public class DoctorServiceImpl implements IDoctorService {
 
     @Override
     @Transactional
-    public void deleteDoctor(Long doctorId) {
+    public void deleteDoctor(
+            Long doctorId,
+            String doctorEmail
+    ) {
 
         Doctor doctor = doctorRepository
                 .findByIdAndDeletedFalse(doctorId)
@@ -138,6 +157,12 @@ public class DoctorServiceImpl implements IDoctorService {
                         )
                 );
 
+        // A doctor can delete only their own profile.
+        validateOwnership(
+                doctor,
+                doctorEmail
+        );
+
         User user = doctor.getUser();
 
         // Disable both the doctor profile and its linked authentication account.
@@ -146,6 +171,21 @@ public class DoctorServiceImpl implements IDoctorService {
 
         doctorRepository.save(doctor);
         userRepository.save(user);
+    }
+
+    private void validateOwnership(
+            Doctor doctor,
+            String doctorEmail
+    ) {
+
+        if (!doctor.getUser()
+                .getEmail()
+                .equals(doctorEmail)) {
+
+            throw new ForbiddenException(
+                    "You do not have permission to modify this doctor profile"
+            );
+        }
     }
 
     private DoctorReadOnlyDTO mapToReadOnlyDTO(

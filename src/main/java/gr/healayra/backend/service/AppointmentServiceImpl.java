@@ -2,6 +2,7 @@ package gr.healayra.backend.service;
 
 import gr.healayra.backend.core.exception.BadRequestException;
 import gr.healayra.backend.core.exception.ConflictException;
+import gr.healayra.backend.core.exception.ForbiddenException;
 import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.appointment.AppointmentCreateDTO;
 import gr.healayra.backend.dto.appointment.AppointmentReadOnlyDTO;
@@ -143,7 +144,8 @@ public class AppointmentServiceImpl implements IAppointmentService {
 
     @Override
     public AppointmentReadOnlyDTO getAppointmentById(
-            Long id
+            Long id,
+            String doctorEmail
     ) {
 
         Appointment appointment =
@@ -155,13 +157,34 @@ public class AppointmentServiceImpl implements IAppointmentService {
                                 )
                         );
 
+        // A doctor can view only their own appointments.
+        validateDoctorOwnership(
+                appointment.getDoctor(),
+                doctorEmail
+        );
+
         return mapToReadOnlyDTO(appointment);
     }
 
     @Override
     public List<AppointmentReadOnlyDTO> getAppointmentsByDoctor(
-            Long doctorId
+            Long doctorId,
+            String doctorEmail
     ) {
+
+        Doctor doctor = doctorRepository
+                .findByIdAndDeletedFalse(doctorId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Doctor not found"
+                        )
+                );
+
+        // Prevent a doctor from requesting another doctor's appointments.
+        validateDoctorOwnership(
+                doctor,
+                doctorEmail
+        );
 
         return appointmentRepository
                 .findByDoctorIdAndDeletedFalse(doctorId)
@@ -172,12 +195,27 @@ public class AppointmentServiceImpl implements IAppointmentService {
 
     @Override
     public List<AppointmentReadOnlyDTO> getAppointmentsByClient(
-            Long clientId
+            Long clientId,
+            String doctorEmail
     ) {
 
+        Doctor doctor = doctorRepository
+                .findByUserEmailAndDeletedFalse(doctorEmail)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Doctor profile not found"
+                        )
+                );
+
+        // Return only this client's appointments that belong to the logged-in doctor.
         return appointmentRepository
                 .findByClientIdAndDeletedFalse(clientId)
                 .stream()
+                .filter(appointment ->
+                        appointment.getDoctor()
+                                .getId()
+                                .equals(doctor.getId())
+                )
                 .map(this::mapToReadOnlyDTO)
                 .toList();
     }
@@ -205,7 +243,8 @@ public class AppointmentServiceImpl implements IAppointmentService {
     @Override
     public AppointmentReadOnlyDTO updateStatus(
             Long appointmentId,
-            AppointmentUpdateStatusDTO dto
+            AppointmentUpdateStatusDTO dto,
+            String doctorEmail
     ) {
 
         Appointment appointment =
@@ -217,12 +256,33 @@ public class AppointmentServiceImpl implements IAppointmentService {
                                 )
                         );
 
+        // A doctor can change the status only of their own appointments.
+        validateDoctorOwnership(
+                appointment.getDoctor(),
+                doctorEmail
+        );
+
         appointment.setStatus(dto.status());
 
         Appointment updatedAppointment =
                 appointmentRepository.save(appointment);
 
         return mapToReadOnlyDTO(updatedAppointment);
+    }
+
+    private void validateDoctorOwnership(
+            Doctor doctor,
+            String doctorEmail
+    ) {
+
+        if (!doctor.getUser()
+                .getEmail()
+                .equals(doctorEmail)) {
+
+            throw new ForbiddenException(
+                    "You do not have permission to access this appointment"
+            );
+        }
     }
 
     private AppointmentReadOnlyDTO mapToReadOnlyDTO(

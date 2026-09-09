@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -21,11 +22,15 @@ public class DoctorController {
 
     @PostMapping
     public ResponseEntity<DoctorReadOnlyDTO> createDoctor(
-            @Valid @RequestBody DoctorCreateDTO dto
+            @Valid @RequestBody DoctorCreateDTO dto,
+            Principal principal
     ) {
 
         DoctorReadOnlyDTO createdDoctor =
-                doctorService.createDoctor(dto);
+                doctorService.createDoctor(
+                        dto,
+                        principal.getName()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -66,21 +71,30 @@ public class DoctorController {
     @PutMapping("/{id}")
     public ResponseEntity<DoctorReadOnlyDTO> updateDoctor(
             @PathVariable Long id,
-            @Valid @RequestBody DoctorUpdateDTO dto
+            @Valid @RequestBody DoctorUpdateDTO dto,
+            Principal principal
     ) {
 
         DoctorReadOnlyDTO updatedDoctor =
-                doctorService.updateDoctor(id, dto);
+                doctorService.updateDoctor(
+                        id,
+                        dto,
+                        principal.getName()
+                );
 
         return ResponseEntity.ok(updatedDoctor);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDoctor(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Principal principal
     ) {
 
-        doctorService.deleteDoctor(id);
+        doctorService.deleteDoctor(
+                id,
+                principal.getName()
+        );
 
         return ResponseEntity.noContent().build();
     }

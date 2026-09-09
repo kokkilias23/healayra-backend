@@ -79,6 +79,26 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiErrorResponse> handleForbidden(
+            ForbiddenException exception,
+            HttpServletRequest request
+    ) {
+
+        log.warn(
+                "Forbidden request={} with message={}",
+                request.getRequestURI(),
+                exception.getMessage()
+        );
+
+        return buildResponse(
+                HttpStatus.FORBIDDEN,
+                exception.getMessage(),
+                request.getRequestURI(),
+                null
+        );
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiErrorResponse> handleAuthentication(
             AuthenticationException exception,

@@ -2,6 +2,7 @@ package gr.healayra.backend.service;
 
 import gr.healayra.backend.core.exception.BadRequestException;
 import gr.healayra.backend.core.exception.ConflictException;
+import gr.healayra.backend.core.exception.ForbiddenException;
 import gr.healayra.backend.core.exception.ResourceNotFoundException;
 import gr.healayra.backend.dto.availability.AvailabilityCreateDTO;
 import gr.healayra.backend.dto.availability.AvailabilityReadOnlyDTO;
@@ -24,7 +25,8 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
 
     @Override
     public AvailabilityReadOnlyDTO createAvailability(
-            AvailabilityCreateDTO dto
+            AvailabilityCreateDTO dto,
+            String doctorEmail
     ) {
 
         Doctor doctor = doctorRepository
@@ -34,6 +36,12 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
                                 "Doctor not found"
                         )
                 );
+
+        // A doctor can create availability only for their own profile.
+        validateOwnership(
+                doctor,
+                doctorEmail
+        );
 
         // A working period is valid only when the start time is before the end time.
         if (!dto.startTime().isBefore(dto.endTime())) {
@@ -104,7 +112,8 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
     @Override
     public AvailabilityReadOnlyDTO updateAvailability(
             Long availabilityId,
-            AvailabilityUpdateDTO dto
+            AvailabilityUpdateDTO dto,
+            String doctorEmail
     ) {
 
         Availability availability =
@@ -115,6 +124,12 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
                                         "Availability not found"
                                 )
                         );
+
+        // A doctor can update only their own availability.
+        validateOwnership(
+                availability.getDoctor(),
+                doctorEmail
+        );
 
         // Revalidate the working time range before updating the schedule.
         if (!dto.startTime().isBefore(dto.endTime())) {
@@ -136,7 +151,8 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
 
     @Override
     public void deleteAvailability(
-            Long availabilityId
+            Long availabilityId,
+            String doctorEmail
     ) {
 
         Availability availability =
@@ -148,10 +164,31 @@ public class AvailabilityServiceImpl implements IAvailabilityService {
                                 )
                         );
 
+        // A doctor can delete only their own availability.
+        validateOwnership(
+                availability.getDoctor(),
+                doctorEmail
+        );
+
         // Preserve availability history by marking the record as deleted.
         availability.softDelete();
 
         availabilityRepository.save(availability);
+    }
+
+    private void validateOwnership(
+            Doctor doctor,
+            String doctorEmail
+    ) {
+
+        if (!doctor.getUser()
+                .getEmail()
+                .equals(doctorEmail)) {
+
+            throw new ForbiddenException(
+                    "You do not have permission to modify this availability"
+            );
+        }
     }
 
     private AvailabilityReadOnlyDTO mapToReadOnlyDTO(

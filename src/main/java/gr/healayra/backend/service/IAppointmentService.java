@@ -13,16 +13,28 @@ public interface IAppointmentService {
             String clientEmail
     );
 
-    AppointmentReadOnlyDTO getAppointmentById(Long id);
+    AppointmentReadOnlyDTO getAppointmentById(
+            Long id,
+            String doctorEmail
+    );
 
-    List<AppointmentReadOnlyDTO> getAppointmentsByDoctor(Long doctorId);
+    List<AppointmentReadOnlyDTO> getAppointmentsByDoctor(
+            Long doctorId,
+            String doctorEmail
+    );
 
-    List<AppointmentReadOnlyDTO> getAppointmentsByClient(Long clientId);
+    List<AppointmentReadOnlyDTO> getAppointmentsByClient(
+            Long clientId,
+            String doctorEmail
+    );
 
-    List<AppointmentReadOnlyDTO> getMyAppointments(String clientEmail);
+    List<AppointmentReadOnlyDTO> getMyAppointments(
+            String clientEmail
+    );
 
     AppointmentReadOnlyDTO updateStatus(
             Long appointmentId,
-            AppointmentUpdateStatusDTO dto
+            AppointmentUpdateStatusDTO dto,
+            String doctorEmail
     );
 }

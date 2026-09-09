@@ -7,16 +7,29 @@ import java.util.List;
 
 public interface IVisitService {
 
-    VisitReadOnlyDTO createVisit(VisitCreateDTO dto);
+    VisitReadOnlyDTO createVisit(
+            VisitCreateDTO dto,
+            String doctorEmail
+    );
 
-    VisitReadOnlyDTO getVisitById(Long id);
+    VisitReadOnlyDTO getVisitById(
+            Long id,
+            String doctorEmail
+    );
 
-    List<VisitReadOnlyDTO> getVisitsByClient(Long clientId);
+    List<VisitReadOnlyDTO> getVisitsByClient(
+            Long clientId,
+            String doctorEmail
+    );
 
     List<VisitReadOnlyDTO> getVisitsByDoctorAndClient(
             Long doctorId,
-            Long clientId
+            Long clientId,
+            String doctorEmail
     );
 
-    void deleteVisit(Long visitId);
+    void deleteVisit(
+            Long visitId,
+            String doctorEmail
+    );
 }
