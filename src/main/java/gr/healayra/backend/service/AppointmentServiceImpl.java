@@ -262,6 +262,12 @@ public class AppointmentServiceImpl implements IAppointmentService {
                 doctorEmail
         );
 
+        // Allow only valid business transitions between appointment statuses.
+        validateStatusTransition(
+                appointment.getStatus(),
+                dto.status()
+        );
+
         appointment.setStatus(dto.status());
 
         Appointment updatedAppointment =
@@ -281,6 +287,36 @@ public class AppointmentServiceImpl implements IAppointmentService {
 
             throw new ForbiddenException(
                     "You do not have permission to access this appointment"
+            );
+        }
+    }
+
+    private void validateStatusTransition(
+            AppointmentStatus currentStatus,
+            AppointmentStatus newStatus
+    ) {
+
+        boolean validTransition =
+                switch (currentStatus) {
+
+                    case PENDING ->
+                            newStatus == AppointmentStatus.CONFIRMED
+                                    || newStatus == AppointmentStatus.CANCELLED;
+
+                    case CONFIRMED ->
+                            newStatus == AppointmentStatus.COMPLETED
+                                    || newStatus == AppointmentStatus.CANCELLED;
+
+                    case COMPLETED, CANCELLED ->
+                            false;
+                };
+
+        if (!validTransition) {
+            throw new BadRequestException(
+                    "Invalid appointment status transition from "
+                            + currentStatus
+                            + " to "
+                            + newStatus
             );
         }
     }
