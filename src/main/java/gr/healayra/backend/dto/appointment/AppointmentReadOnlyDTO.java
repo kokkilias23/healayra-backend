@@ -14,6 +14,8 @@ public record AppointmentReadOnlyDTO(
 
         LocalDateTime appointmentTime,
 
+        String service,
+
         AppointmentStatus status,
 
         String notes

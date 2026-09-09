@@ -33,6 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 class AppointmentControllerTest {
 
+    private static final String SERVICE =
+            "Ατομική Συνεδρία";
+
     @Mock
     private IAppointmentService appointmentService;
 
@@ -65,8 +68,7 @@ class AppointmentControllerTest {
         objectMapper =
                 new ObjectMapper();
 
-        objectMapper
-                .findAndRegisterModules();
+        objectMapper.findAndRegisterModules();
     }
 
     @Test
@@ -79,7 +81,8 @@ class AppointmentControllerTest {
         AppointmentCreateDTO request =
                 new AppointmentCreateDTO(
                         1L,
-                        appointmentTime
+                        appointmentTime,
+                        SERVICE
                 );
 
         AppointmentReadOnlyDTO response =
@@ -88,31 +91,21 @@ class AppointmentControllerTest {
                         1L,
                         10L,
                         appointmentTime,
+                        SERVICE,
                         AppointmentStatus.PENDING,
                         null
                 );
 
         when(
-                appointmentService
-                        .createAppointment(
-                                any(
-                                        AppointmentCreateDTO.class
-                                ),
-                                eq(
-                                        "client@healayra.gr"
-                                )
-                        )
-        ).thenReturn(
-                response
-        );
+                appointmentService.createAppointment(
+                        any(AppointmentCreateDTO.class),
+                        eq("client@healayra.gr")
+                )
+        ).thenReturn(response);
 
         mockMvc.perform(
-                        post(
-                                "/api/appointments"
-                        )
-                                .principal(
-                                        clientPrincipal
-                                )
+                        post("/api/appointments")
+                                .principal(clientPrincipal)
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -139,10 +132,12 @@ class AppointmentControllerTest {
                                 .value(10)
                 )
                 .andExpect(
+                        jsonPath("$.service")
+                                .value(SERVICE)
+                )
+                .andExpect(
                         jsonPath("$.status")
-                                .value(
-                                        "PENDING"
-                                )
+                                .value("PENDING")
                 );
     }
 
@@ -156,19 +151,15 @@ class AppointmentControllerTest {
         AppointmentCreateDTO request =
                 new AppointmentCreateDTO(
                         1L,
-                        appointmentTime
+                        appointmentTime,
+                        SERVICE
                 );
 
         when(
-                appointmentService
-                        .createAppointment(
-                                any(
-                                        AppointmentCreateDTO.class
-                                ),
-                                eq(
-                                        "client@healayra.gr"
-                                )
-                        )
+                appointmentService.createAppointment(
+                        any(AppointmentCreateDTO.class),
+                        eq("client@healayra.gr")
+                )
         ).thenThrow(
                 new ConflictException(
                         "Appointment slot already booked"
@@ -176,12 +167,8 @@ class AppointmentControllerTest {
         );
 
         mockMvc.perform(
-                        post(
-                                "/api/appointments"
-                        )
-                                .principal(
-                                        clientPrincipal
-                                )
+                        post("/api/appointments")
+                                .principal(clientPrincipal)
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -222,33 +209,27 @@ class AppointmentControllerTest {
                         1L,
                         10L,
                         futureAppointmentTime(),
+                        SERVICE,
                         AppointmentStatus.CONFIRMED,
                         null
                 );
 
         when(
-                appointmentService
-                        .updateStatus(
-                                eq(100L),
-                                any(
-                                        AppointmentUpdateStatusDTO.class
-                                ),
-                                eq(
-                                        "doctor@healayra.gr"
-                                )
-                        )
-        ).thenReturn(
-                response
-        );
+                appointmentService.updateStatus(
+                        eq(100L),
+                        any(
+                                AppointmentUpdateStatusDTO.class
+                        ),
+                        eq("doctor@healayra.gr")
+                )
+        ).thenReturn(response);
 
         mockMvc.perform(
                         patch(
                                 "/api/appointments/{id}/status",
                                 100L
                         )
-                                .principal(
-                                        doctorPrincipal
-                                )
+                                .principal(doctorPrincipal)
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -263,10 +244,12 @@ class AppointmentControllerTest {
                         status().isOk()
                 )
                 .andExpect(
+                        jsonPath("$.service")
+                                .value(SERVICE)
+                )
+                .andExpect(
                         jsonPath("$.status")
-                                .value(
-                                        "CONFIRMED"
-                                )
+                                .value("CONFIRMED")
                 );
     }
 
@@ -280,16 +263,13 @@ class AppointmentControllerTest {
                 );
 
         when(
-                appointmentService
-                        .updateStatus(
-                                eq(100L),
-                                any(
-                                        AppointmentUpdateStatusDTO.class
-                                ),
-                                eq(
-                                        "doctor@healayra.gr"
-                                )
-                        )
+                appointmentService.updateStatus(
+                        eq(100L),
+                        any(
+                                AppointmentUpdateStatusDTO.class
+                        ),
+                        eq("doctor@healayra.gr")
+                )
         ).thenThrow(
                 new BadRequestException(
                         "Invalid appointment status transition from PENDING to COMPLETED"
@@ -301,9 +281,7 @@ class AppointmentControllerTest {
                                 "/api/appointments/{id}/status",
                                 100L
                         )
-                                .principal(
-                                        doctorPrincipal
-                                )
+                                .principal(doctorPrincipal)
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -339,16 +317,13 @@ class AppointmentControllerTest {
                 );
 
         when(
-                appointmentService
-                        .updateStatus(
-                                eq(100L),
-                                any(
-                                        AppointmentUpdateStatusDTO.class
-                                ),
-                                eq(
-                                        "doctor@healayra.gr"
-                                )
-                        )
+                appointmentService.updateStatus(
+                        eq(100L),
+                        any(
+                                AppointmentUpdateStatusDTO.class
+                        ),
+                        eq("doctor@healayra.gr")
+                )
         ).thenThrow(
                 new ForbiddenException(
                         "You do not have permission to access this appointment"
@@ -360,9 +335,7 @@ class AppointmentControllerTest {
                                 "/api/appointments/{id}/status",
                                 100L
                         )
-                                .principal(
-                                        doctorPrincipal
-                                )
+                                .principal(doctorPrincipal)
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -395,17 +368,14 @@ class AppointmentControllerTest {
         String invalidRequest = """
                 {
                     "doctorId": null,
-                    "appointmentTime": null
+                    "appointmentTime": null,
+                    "service": ""
                 }
                 """;
 
         mockMvc.perform(
-                        post(
-                                "/api/appointments"
-                        )
-                                .principal(
-                                        clientPrincipal
-                                )
+                        post("/api/appointments")
+                                .principal(clientPrincipal)
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
@@ -418,9 +388,7 @@ class AppointmentControllerTest {
                 )
                 .andExpect(
                         jsonPath("$.message")
-                                .value(
-                                        "Validation failed"
-                                )
+                                .value("Validation failed")
                 );
     }
 

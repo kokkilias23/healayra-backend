@@ -19,19 +19,36 @@ import java.time.LocalDateTime;
 public class Appointment extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(
+            strategy = GenerationType.IDENTITY
+    )
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "doctor_id", nullable = false)
+    @JoinColumn(
+            name = "doctor_id",
+            nullable = false
+    )
     private Doctor doctor;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "client_id", nullable = false)
+    @JoinColumn(
+            name = "client_id",
+            nullable = false
+    )
     private Client client;
 
-    @Column(name = "appointment_time", nullable = false)
+    @Column(
+            name = "appointment_time",
+            nullable = false
+    )
     private LocalDateTime appointmentTime;
+
+    @Column(
+            nullable = false,
+            length = 150
+    )
+    private String service;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

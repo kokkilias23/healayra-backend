@@ -13,7 +13,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -22,6 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 @Transactional
 class AppointmentRepositoryIntegrationTest {
+
+    private static final String SERVICE =
+            "Ατομική Συνεδρία";
 
     @Autowired
     private AppointmentRepository appointmentRepository;
@@ -44,17 +50,23 @@ class AppointmentRepositoryIntegrationTest {
     @BeforeEach
     void setUp() {
 
-        String uniqueId = UUID.randomUUID().toString();
+        String uniqueId =
+                UUID.randomUUID().toString();
 
         User doctorUser = User.builder()
-                .email("doctor-" + uniqueId + "@test.com")
+                .email(
+                        "doctor-"
+                                + uniqueId
+                                + "@test.com"
+                )
                 .password("test-password")
                 .role(Role.DOCTOR)
                 .build();
 
-        doctorUser = userRepository.saveAndFlush(
-                doctorUser
-        );
+        doctorUser =
+                userRepository.saveAndFlush(
+                        doctorUser
+                );
 
         doctor = Doctor.builder()
                 .user(doctorUser)
@@ -64,15 +76,21 @@ class AppointmentRepositoryIntegrationTest {
                 .phone("6900000000")
                 .build();
 
-        doctor = doctorRepository.saveAndFlush(
-                doctor
-        );
+        doctor =
+                doctorRepository.saveAndFlush(
+                        doctor
+                );
 
-        User firstClientUser = User.builder()
-                .email("client-one-" + uniqueId + "@test.com")
-                .password("test-password")
-                .role(Role.CLIENT)
-                .build();
+        User firstClientUser =
+                User.builder()
+                        .email(
+                                "client-one-"
+                                        + uniqueId
+                                        + "@test.com"
+                        )
+                        .password("test-password")
+                        .role(Role.CLIENT)
+                        .build();
 
         firstClientUser =
                 userRepository.saveAndFlush(
@@ -91,11 +109,16 @@ class AppointmentRepositoryIntegrationTest {
                         firstClient
                 );
 
-        User secondClientUser = User.builder()
-                .email("client-two-" + uniqueId + "@test.com")
-                .password("test-password")
-                .role(Role.CLIENT)
-                .build();
+        User secondClientUser =
+                User.builder()
+                        .email(
+                                "client-two-"
+                                        + uniqueId
+                                        + "@test.com"
+                        )
+                        .password("test-password")
+                        .role(Role.CLIENT)
+                        .build();
 
         secondClientUser =
                 userRepository.saveAndFlush(
@@ -114,11 +137,16 @@ class AppointmentRepositoryIntegrationTest {
                         secondClient
                 );
 
+        LocalDate nextMonday =
+                LocalDate.now()
+                        .with(
+                                TemporalAdjusters.next(
+                                        DayOfWeek.MONDAY
+                                )
+                        );
+
         appointmentTime =
-                LocalDateTime.of(
-                        2026,
-                        10,
-                        5,
+                nextMonday.atTime(
                         10,
                         0
                 );
@@ -131,8 +159,13 @@ class AppointmentRepositoryIntegrationTest {
                 Appointment.builder()
                         .doctor(doctor)
                         .client(firstClient)
-                        .appointmentTime(appointmentTime)
-                        .status(AppointmentStatus.PENDING)
+                        .appointmentTime(
+                                appointmentTime
+                        )
+                        .service(SERVICE)
+                        .status(
+                                AppointmentStatus.PENDING
+                        )
                         .build();
 
         appointmentRepository.saveAndFlush(
@@ -143,16 +176,22 @@ class AppointmentRepositoryIntegrationTest {
                 Appointment.builder()
                         .doctor(doctor)
                         .client(secondClient)
-                        .appointmentTime(appointmentTime)
-                        .status(AppointmentStatus.PENDING)
+                        .appointmentTime(
+                                appointmentTime
+                        )
+                        .service(SERVICE)
+                        .status(
+                                AppointmentStatus.PENDING
+                        )
                         .build();
 
         assertThrows(
                 DataIntegrityViolationException.class,
                 () ->
-                        appointmentRepository.saveAndFlush(
-                                secondAppointment
-                        )
+                        appointmentRepository
+                                .saveAndFlush(
+                                        secondAppointment
+                                )
         );
     }
 
@@ -163,8 +202,13 @@ class AppointmentRepositoryIntegrationTest {
                 Appointment.builder()
                         .doctor(doctor)
                         .client(firstClient)
-                        .appointmentTime(appointmentTime)
-                        .status(AppointmentStatus.CONFIRMED)
+                        .appointmentTime(
+                                appointmentTime
+                        )
+                        .service(SERVICE)
+                        .status(
+                                AppointmentStatus.CONFIRMED
+                        )
                         .build();
 
         appointmentRepository.saveAndFlush(
@@ -175,16 +219,22 @@ class AppointmentRepositoryIntegrationTest {
                 Appointment.builder()
                         .doctor(doctor)
                         .client(secondClient)
-                        .appointmentTime(appointmentTime)
-                        .status(AppointmentStatus.PENDING)
+                        .appointmentTime(
+                                appointmentTime
+                        )
+                        .service(SERVICE)
+                        .status(
+                                AppointmentStatus.PENDING
+                        )
                         .build();
 
         assertThrows(
                 DataIntegrityViolationException.class,
                 () ->
-                        appointmentRepository.saveAndFlush(
-                                secondAppointment
-                        )
+                        appointmentRepository
+                                .saveAndFlush(
+                                        secondAppointment
+                                )
         );
     }
 
@@ -195,8 +245,13 @@ class AppointmentRepositoryIntegrationTest {
                 Appointment.builder()
                         .doctor(doctor)
                         .client(firstClient)
-                        .appointmentTime(appointmentTime)
-                        .status(AppointmentStatus.CANCELLED)
+                        .appointmentTime(
+                                appointmentTime
+                        )
+                        .service(SERVICE)
+                        .status(
+                                AppointmentStatus.CANCELLED
+                        )
                         .build();
 
         appointmentRepository.saveAndFlush(
@@ -207,15 +262,21 @@ class AppointmentRepositoryIntegrationTest {
                 Appointment.builder()
                         .doctor(doctor)
                         .client(secondClient)
-                        .appointmentTime(appointmentTime)
-                        .status(AppointmentStatus.PENDING)
+                        .appointmentTime(
+                                appointmentTime
+                        )
+                        .service(SERVICE)
+                        .status(
+                                AppointmentStatus.PENDING
+                        )
                         .build();
 
         assertDoesNotThrow(
                 () ->
-                        appointmentRepository.saveAndFlush(
-                                newAppointment
-                        )
+                        appointmentRepository
+                                .saveAndFlush(
+                                        newAppointment
+                                )
         );
     }
 }

@@ -136,6 +136,9 @@ public class AppointmentServiceImpl implements IAppointmentService {
                 .client(client)
                 .appointmentTime(dto.appointmentTime())
 
+                // Store the session type selected by the client during booking.
+                .service(dto.service().trim())
+
                 // New appointments start as pending until the doctor confirms them.
                 .status(AppointmentStatus.PENDING)
                 .build();
@@ -334,6 +337,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
                 appointment.getDoctor().getId(),
                 appointment.getClient().getId(),
                 appointment.getAppointmentTime(),
+                appointment.getService(),
                 appointment.getStatus(),
                 appointment.getNotes()
         );

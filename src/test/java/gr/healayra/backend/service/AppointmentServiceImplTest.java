@@ -25,9 +25,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,6 +38,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AppointmentServiceImplTest {
+
+    private static final String SERVICE =
+            "Ατομική Συνεδρία";
 
     @Mock
     private AppointmentRepository appointmentRepository;
@@ -57,8 +61,11 @@ class AppointmentServiceImplTest {
     private Client client;
     private Availability availability;
 
-    private final String doctorEmail = "doctor@healayra.gr";
-    private final String clientEmail = "client@healayra.gr";
+    private final String doctorEmail =
+            "doctor@healayra.gr";
+
+    private final String clientEmail =
+            "client@healayra.gr";
 
     @BeforeEach
     void setUp() {
@@ -109,19 +116,32 @@ class AppointmentServiceImplTest {
     void createAppointment_shouldCreatePendingAppointment_whenSlotIsValid() {
 
         LocalDateTime appointmentTime =
-                LocalDateTime.of(2026, 9, 14, 10, 0);
+                validMondayAppointmentTime();
 
         AppointmentCreateDTO dto =
                 new AppointmentCreateDTO(
                         doctor.getId(),
-                        appointmentTime
+                        appointmentTime,
+                        SERVICE
                 );
 
-        when(doctorRepository.findByIdAndDeletedFalse(doctor.getId()))
-                .thenReturn(Optional.of(doctor));
+        when(
+                doctorRepository
+                        .findByIdAndDeletedFalse(
+                                doctor.getId()
+                        )
+        ).thenReturn(
+                Optional.of(doctor)
+        );
 
-        when(clientRepository.findByUserEmailAndDeletedFalse(clientEmail))
-                .thenReturn(Optional.of(client));
+        when(
+                clientRepository
+                        .findByUserEmailAndDeletedFalse(
+                                clientEmail
+                        )
+        ).thenReturn(
+                Optional.of(client)
+        );
 
         when(
                 availabilityRepository
@@ -129,7 +149,9 @@ class AppointmentServiceImplTest {
                                 doctor.getId(),
                                 DayOfWeek.MONDAY
                         )
-        ).thenReturn(Optional.of(availability));
+        ).thenReturn(
+                Optional.of(availability)
+        );
 
         when(
                 appointmentRepository
@@ -140,16 +162,20 @@ class AppointmentServiceImplTest {
                         )
         ).thenReturn(false);
 
-        when(appointmentRepository.save(any(Appointment.class)))
-                .thenAnswer(invocation -> {
+        when(
+                appointmentRepository
+                        .save(
+                                any(Appointment.class)
+                        )
+        ).thenAnswer(invocation -> {
 
-                    Appointment appointment =
-                            invocation.getArgument(0);
+            Appointment appointment =
+                    invocation.getArgument(0);
 
-                    appointment.setId(500L);
+            appointment.setId(500L);
 
-                    return appointment;
-                });
+            return appointment;
+        });
 
         AppointmentReadOnlyDTO result =
                 appointmentService.createAppointment(
@@ -159,33 +185,73 @@ class AppointmentServiceImplTest {
 
         assertNotNull(result);
 
-        assertEquals(500L, result.id());
-        assertEquals(doctor.getId(), result.doctorId());
-        assertEquals(client.getId(), result.clientId());
-        assertEquals(appointmentTime, result.appointmentTime());
-        assertEquals(AppointmentStatus.PENDING, result.status());
+        assertEquals(
+                500L,
+                result.id()
+        );
 
-        verify(appointmentRepository)
-                .save(any(Appointment.class));
+        assertEquals(
+                doctor.getId(),
+                result.doctorId()
+        );
+
+        assertEquals(
+                client.getId(),
+                result.clientId()
+        );
+
+        assertEquals(
+                appointmentTime,
+                result.appointmentTime()
+        );
+
+        assertEquals(
+                SERVICE,
+                result.service()
+        );
+
+        assertEquals(
+                AppointmentStatus.PENDING,
+                result.status()
+        );
+
+        verify(
+                appointmentRepository
+        ).save(
+                any(Appointment.class)
+        );
     }
 
     @Test
     void createAppointment_shouldThrowConflict_whenSlotAlreadyBooked() {
 
         LocalDateTime appointmentTime =
-                LocalDateTime.of(2026, 9, 14, 10, 0);
+                validMondayAppointmentTime();
 
         AppointmentCreateDTO dto =
                 new AppointmentCreateDTO(
                         doctor.getId(),
-                        appointmentTime
+                        appointmentTime,
+                        SERVICE
                 );
 
-        when(doctorRepository.findByIdAndDeletedFalse(doctor.getId()))
-                .thenReturn(Optional.of(doctor));
+        when(
+                doctorRepository
+                        .findByIdAndDeletedFalse(
+                                doctor.getId()
+                        )
+        ).thenReturn(
+                Optional.of(doctor)
+        );
 
-        when(clientRepository.findByUserEmailAndDeletedFalse(clientEmail))
-                .thenReturn(Optional.of(client));
+        when(
+                clientRepository
+                        .findByUserEmailAndDeletedFalse(
+                                clientEmail
+                        )
+        ).thenReturn(
+                Optional.of(client)
+        );
 
         when(
                 availabilityRepository
@@ -193,7 +259,9 @@ class AppointmentServiceImplTest {
                                 doctor.getId(),
                                 DayOfWeek.MONDAY
                         )
-        ).thenReturn(Optional.of(availability));
+        ).thenReturn(
+                Optional.of(availability)
+        );
 
         when(
                 appointmentRepository
@@ -222,26 +290,42 @@ class AppointmentServiceImplTest {
         verify(
                 appointmentRepository,
                 never()
-        ).save(any(Appointment.class));
+        ).save(
+                any(Appointment.class)
+        );
     }
 
     @Test
     void createAppointment_shouldThrowBadRequest_whenSlotIsOutsideAvailability() {
 
         LocalDateTime appointmentTime =
-                LocalDateTime.of(2026, 9, 14, 17, 0);
+                validMondayAppointmentTime()
+                        .withHour(17);
 
         AppointmentCreateDTO dto =
                 new AppointmentCreateDTO(
                         doctor.getId(),
-                        appointmentTime
+                        appointmentTime,
+                        SERVICE
                 );
 
-        when(doctorRepository.findByIdAndDeletedFalse(doctor.getId()))
-                .thenReturn(Optional.of(doctor));
+        when(
+                doctorRepository
+                        .findByIdAndDeletedFalse(
+                                doctor.getId()
+                        )
+        ).thenReturn(
+                Optional.of(doctor)
+        );
 
-        when(clientRepository.findByUserEmailAndDeletedFalse(clientEmail))
-                .thenReturn(Optional.of(client));
+        when(
+                clientRepository
+                        .findByUserEmailAndDeletedFalse(
+                                clientEmail
+                        )
+        ).thenReturn(
+                Optional.of(client)
+        );
 
         when(
                 availabilityRepository
@@ -249,7 +333,9 @@ class AppointmentServiceImplTest {
                                 doctor.getId(),
                                 DayOfWeek.MONDAY
                         )
-        ).thenReturn(Optional.of(availability));
+        ).thenReturn(
+                Optional.of(availability)
+        );
 
         BadRequestException exception =
                 assertThrows(
@@ -269,7 +355,9 @@ class AppointmentServiceImplTest {
         verify(
                 appointmentRepository,
                 never()
-        ).save(any(Appointment.class));
+        ).save(
+                any(Appointment.class)
+        );
     }
 
     @Test
@@ -285,7 +373,9 @@ class AppointmentServiceImplTest {
                         .findByIdAndDeletedFalse(
                                 appointment.getId()
                         )
-        ).thenReturn(Optional.of(appointment));
+        ).thenReturn(
+                Optional.of(appointment)
+        );
 
         AppointmentReadOnlyDTO result =
                 appointmentService.getAppointmentById(
@@ -302,6 +392,11 @@ class AppointmentServiceImplTest {
                 doctor.getId(),
                 result.doctorId()
         );
+
+        assertEquals(
+                SERVICE,
+                result.service()
+        );
     }
 
     @Test
@@ -317,7 +412,9 @@ class AppointmentServiceImplTest {
                         .findByIdAndDeletedFalse(
                                 appointment.getId()
                         )
-        ).thenReturn(Optional.of(appointment));
+        ).thenReturn(
+                Optional.of(appointment)
+        );
 
         ForbiddenException exception =
                 assertThrows(
@@ -353,11 +450,15 @@ class AppointmentServiceImplTest {
                         .findByIdAndDeletedFalse(
                                 appointment.getId()
                         )
-        ).thenReturn(Optional.of(appointment));
+        ).thenReturn(
+                Optional.of(appointment)
+        );
 
         when(
                 appointmentRepository
-                        .save(any(Appointment.class))
+                        .save(
+                                any(Appointment.class)
+                        )
         ).thenAnswer(
                 invocation ->
                         invocation.getArgument(0)
@@ -399,11 +500,15 @@ class AppointmentServiceImplTest {
                         .findByIdAndDeletedFalse(
                                 appointment.getId()
                         )
-        ).thenReturn(Optional.of(appointment));
+        ).thenReturn(
+                Optional.of(appointment)
+        );
 
         when(
                 appointmentRepository
-                        .save(any(Appointment.class))
+                        .save(
+                                any(Appointment.class)
+                        )
         ).thenAnswer(
                 invocation ->
                         invocation.getArgument(0)
@@ -440,11 +545,15 @@ class AppointmentServiceImplTest {
                         .findByIdAndDeletedFalse(
                                 appointment.getId()
                         )
-        ).thenReturn(Optional.of(appointment));
+        ).thenReturn(
+                Optional.of(appointment)
+        );
 
         when(
                 appointmentRepository
-                        .save(any(Appointment.class))
+                        .save(
+                                any(Appointment.class)
+                        )
         ).thenAnswer(
                 invocation ->
                         invocation.getArgument(0)
@@ -481,7 +590,9 @@ class AppointmentServiceImplTest {
                         .findByIdAndDeletedFalse(
                                 appointment.getId()
                         )
-        ).thenReturn(Optional.of(appointment));
+        ).thenReturn(
+                Optional.of(appointment)
+        );
 
         BadRequestException exception =
                 assertThrows(
@@ -502,7 +613,9 @@ class AppointmentServiceImplTest {
         verify(
                 appointmentRepository,
                 never()
-        ).save(any(Appointment.class));
+        ).save(
+                any(Appointment.class)
+        );
     }
 
     @Test
@@ -523,7 +636,9 @@ class AppointmentServiceImplTest {
                         .findByIdAndDeletedFalse(
                                 appointment.getId()
                         )
-        ).thenReturn(Optional.of(appointment));
+        ).thenReturn(
+                Optional.of(appointment)
+        );
 
         assertThrows(
                 BadRequestException.class,
@@ -538,7 +653,9 @@ class AppointmentServiceImplTest {
         verify(
                 appointmentRepository,
                 never()
-        ).save(any(Appointment.class));
+        ).save(
+                any(Appointment.class)
+        );
     }
 
     @Test
@@ -559,7 +676,9 @@ class AppointmentServiceImplTest {
                         .findByIdAndDeletedFalse(
                                 appointment.getId()
                         )
-        ).thenReturn(Optional.of(appointment));
+        ).thenReturn(
+                Optional.of(appointment)
+        );
 
         assertThrows(
                 ForbiddenException.class,
@@ -574,7 +693,9 @@ class AppointmentServiceImplTest {
         verify(
                 appointmentRepository,
                 never()
-        ).save(any(Appointment.class));
+        ).save(
+                any(Appointment.class)
+        );
     }
 
     private Appointment createAppointment(
@@ -586,16 +707,27 @@ class AppointmentServiceImplTest {
                 .doctor(doctor)
                 .client(client)
                 .appointmentTime(
-                        LocalDateTime.of(
-                                2026,
-                                9,
-                                14,
-                                10,
-                                0
-                        )
+                        validMondayAppointmentTime()
                 )
+                .service(SERVICE)
                 .status(status)
                 .notes(null)
                 .build();
+    }
+
+    private LocalDateTime validMondayAppointmentTime() {
+
+        LocalDate nextMonday =
+                LocalDate.now()
+                        .with(
+                                TemporalAdjusters.next(
+                                        DayOfWeek.MONDAY
+                                )
+                        );
+
+        return nextMonday.atTime(
+                10,
+                0
+        );
     }
 }
