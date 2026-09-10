@@ -52,11 +52,12 @@ Clients can:
 - Hibernate
 - Spring Security
 - JWT Authentication
-- PostgreSQL
+- PostgreSQL 17
 - Flyway
 - Jakarta Validation
 - Lombok
 - Gradle
+- Docker
 - Docker Compose
 - Swagger / OpenAPI
 
@@ -87,7 +88,6 @@ service/
 repository/
 model/
 authentication/
-security/
 core/
 ```
 
@@ -181,6 +181,9 @@ The backend validates:
 - Session duration
 - Appointment slot alignment
 - Double booking
+- Doctor-client ownership rules
+
+Double booking protection exists both in the service layer and at database level.
 
 ---
 
@@ -219,6 +222,8 @@ Doctors can:
 - Create new visits / sessions
 - Add notes to visits
 
+Doctors can access only clients that are related to them through appointments.
+
 The application uses the term **Client** in the codebase and **Θεραπευόμενος** in the Greek user interface.
 
 ---
@@ -234,13 +239,15 @@ A visit stores information such as:
 - Visit date and time
 - Service
 
+A doctor can create a visit only for a client that already has an appointment relationship with that doctor.
+
 Notes can then be attached to individual visits.
 
 This allows the doctor to maintain a basic history of previous sessions.
 
 ---
 
-## Soft Delete
+## Soft Delete and Auditing
 
 Several entities use soft deletion.
 
@@ -251,13 +258,20 @@ deleted
 deletedAt
 ```
 
-This helps preserve historical information.
+The project also uses Spring Data JPA auditing for fields such as:
+
+```text
+createdAt
+updatedAt
+```
+
+This helps preserve historical information and track entity changes.
 
 ---
 
 ## Database
 
-The project uses PostgreSQL.
+The project uses PostgreSQL 17.
 
 Local development configuration:
 
@@ -266,8 +280,6 @@ Database: healayra
 Username: healayra_user
 Port: 5432
 ```
-
-The database can be started with Docker Compose.
 
 Database schema changes are managed using Flyway migrations.
 
@@ -279,23 +291,43 @@ spring.jpa.hibernate.ddl-auto=validate
 
 This means that Hibernate validates the schema while Flyway is responsible for database migrations.
 
+Current Flyway migrations include:
+
+```text
+V1 - Users
+V2 - Doctors and clients
+V3 - Appointments
+V4 - Availability
+V5 - Visits and notes
+V6 - Base entity auditing
+V7 - Double-booking protection
+V8 - Appointment service field
+```
+
 ---
 
-## Running PostgreSQL
+## Docker
 
-Docker must be installed and running.
+The complete backend stack can run with Docker Compose.
 
-From the backend project directory:
+Docker Compose starts:
 
-```bash
-docker compose up -d
+```text
+healayra-backend
+healayra-postgres
 ```
 
-Check that PostgreSQL is running:
+The backend container communicates with PostgreSQL through Docker's internal network:
 
-```bash
-docker ps
+```text
+healayra-backend
+        ↓
+postgres:5432
+        ↓
+healayra-postgres
 ```
+
+The PostgreSQL service also includes a health check so the backend waits until the database is ready before starting.
 
 ---
 
@@ -303,7 +335,7 @@ docker ps
 
 The backend requires a JWT secret.
 
-The secret is not stored directly in the repository.
+The secret is **not stored directly in the repository**.
 
 The application expects:
 
@@ -312,6 +344,8 @@ JWT_SECRET
 ```
 
 ### Git Bash
+
+Generate a random Base64 secret:
 
 ```bash
 export JWT_SECRET="$(openssl rand -base64 32)"
@@ -327,21 +361,109 @@ $env:JWT_SECRET = [Convert]::ToBase64String($bytes)
 
 Do not commit production secrets to Git.
 
+Other supported environment variables include:
+
+```text
+DB_URL
+DB_USERNAME
+DB_PASSWORD
+JWT_EXPIRATION
+CORS_ALLOWED_ORIGINS
+```
+
+Docker Compose configures the database connection automatically for the backend container.
+
 ---
 
-## Run the Backend
+## Run with Docker Compose
 
-After PostgreSQL is running and `JWT_SECRET` has been configured:
+Make sure Docker Desktop is installed and running.
+
+First configure `JWT_SECRET`.
 
 ### Git Bash
 
 ```bash
+export JWT_SECRET="$(openssl rand -base64 32)"
+```
+
+Then start the complete backend stack:
+
+```bash
+docker compose up --build
+```
+
+This builds the Spring Boot Docker image and starts both:
+
+```text
+healayra-backend
+healayra-postgres
+```
+
+The REST API will be available at:
+
+```text
+http://localhost:8080
+```
+
+Swagger UI:
+
+```text
+http://localhost:8080/swagger-ui/index.html
+```
+
+OpenAPI JSON:
+
+```text
+http://localhost:8080/v3/api-docs
+```
+
+---
+
+## Stop Docker Compose
+
+To stop and remove the running containers:
+
+```bash
+docker compose down
+```
+
+The PostgreSQL data is stored in a named Docker volume and is preserved when running:
+
+```bash
+docker compose down
+```
+
+To also remove the database volume and its stored data:
+
+```bash
+docker compose down -v
+```
+
+Use `-v` only when you intentionally want to delete the Docker database data.
+
+---
+
+## Run without Dockerized Backend
+
+The application can also be run directly with Gradle while PostgreSQL is available locally.
+
+Configure `JWT_SECRET` first.
+
+### Git Bash
+
+```bash
+export JWT_SECRET="$(openssl rand -base64 32)"
 ./gradlew bootRun
 ```
 
 ### Windows PowerShell
 
 ```powershell
+$bytes = New-Object byte[] 32
+[System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+$env:JWT_SECRET = [Convert]::ToBase64String($bytes)
+
 .\gradlew bootRun
 ```
 
@@ -360,13 +482,13 @@ Run:
 ### Git Bash
 
 ```bash
-./gradlew build
+./gradlew clean build
 ```
 
 ### Windows PowerShell
 
 ```powershell
-.\gradlew build
+.\gradlew clean build
 ```
 
 A successful build should finish with:
@@ -375,7 +497,7 @@ A successful build should finish with:
 BUILD SUCCESSFUL
 ```
 
-The generated JAR file is located inside:
+The generated executable JAR file is located inside:
 
 ```text
 build/libs/
@@ -384,6 +506,8 @@ build/libs/
 ---
 
 ## Swagger / OpenAPI
+
+The REST API is documented using Swagger / OpenAPI.
 
 Swagger UI is available while the backend is running:
 
@@ -396,6 +520,8 @@ OpenAPI documentation is available at:
 ```text
 http://localhost:8080/v3/api-docs
 ```
+
+The API controllers include endpoint descriptions, response codes and role-specific documentation.
 
 For protected endpoints:
 
@@ -415,6 +541,12 @@ For protected endpoints:
 ```text
 POST /api/auth/register
 POST /api/auth/login
+```
+
+### Users
+
+```text
+GET /api/users/me
 ```
 
 ### Doctors
@@ -500,6 +632,8 @@ The frontend development server normally runs at:
 http://localhost:5173
 ```
 
+The backend CORS configuration allows the frontend development origin.
+
 ---
 
 ## Current MVP Flow
@@ -545,27 +679,85 @@ The MVP includes:
 - Role-based authorization
 - BCrypt password hashing
 - Protected REST endpoints
+- Doctor ownership validation
+- Client relationship validation
+- Custom 401 and 403 responses
+- Global exception handling
 - CORS configuration
-- Request validation
+- Jakarta request validation
+- Database-level double-booking protection
 
-For a production healthcare environment, additional security and privacy hardening would be required.
+For a production healthcare environment, additional security, compliance and privacy hardening would be required.
+
+---
+
+## Error Handling
+
+The backend uses a global REST exception handler.
+
+API errors are returned using a consistent JSON response structure.
+
+Handled error categories include:
+
+```text
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+405 Method Not Allowed
+409 Conflict
+500 Internal Server Error
+```
+
+Validation errors also return field-specific information.
 
 ---
 
 ## Testing
 
-The project can be verified with:
+The project contains automated tests for important appointment and security behavior.
+
+Current test areas include:
+
+- Spring application context
+- Appointment service logic
+- Appointment controller behavior
+- Appointment repository integration
+- Appointment security integration
+- Visit ownership validation
+
+Run the complete test suite with:
 
 ```bash
-./gradlew build
+./gradlew clean build
 ```
 
-The REST API can also be tested using:
+The REST API can also be tested manually using:
 
 - Swagger UI
 - Postman
 
-The final frontend and backend builds were successfully tested locally.
+The backend build and Docker deployment have been successfully tested locally.
+
+---
+
+## Dockerfile
+
+The backend uses a multi-stage Docker build.
+
+The build stage:
+
+```text
+Java 21 JDK
+      ↓
+Gradle bootJar
+      ↓
+Spring Boot executable JAR
+```
+
+The runtime stage uses a Java 21 JRE and contains only the executable application JAR required to run the backend.
+
+This keeps the runtime image separate from the full build environment.
 
 ---
 
@@ -574,16 +766,18 @@ The final frontend and backend builds were successfully tested locally.
 Possible future improvements include:
 
 - Full multi-tenant support
-- Multiple doctors
+- Multiple doctor organizations
 - Doctor search
 - Custom doctor domains
 - Client appointment cancellation
 - Email notifications
 - Appointment reminders
 - HttpOnly Secure cookie authentication
-- Advanced appointment status transitions
-- Database-level booking concurrency protection
+- Refresh token support
+- Advanced appointment status workflows
+- Pagination for larger datasets
 - Cloud deployment
+- CI/CD
 - Logging and monitoring
 - Extended automated tests
 - Production GDPR and privacy hardening
@@ -605,11 +799,19 @@ Implemented core features include:
 - Client management
 - Client search
 - Visit history
+- Visit ownership protection
 - Visit notes
 - PostgreSQL persistence
 - Flyway database migrations
+- Database-level double-booking protection
+- JPA auditing
+- Soft deletion
+- Global REST exception handling
 - Swagger / OpenAPI documentation
-- Docker-based PostgreSQL development environment
+- Automated tests
+- Dockerized Spring Boot backend
+- Dockerized PostgreSQL database
+- Docker Compose full backend environment
 
 ---
 
