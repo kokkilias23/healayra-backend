@@ -1,4 +1,6 @@
 services:
+
+  # PostgreSQL database used by the Healayra backend.
   postgres:
     image: postgres:17
     container_name: healayra-postgres
@@ -13,6 +15,48 @@ services:
 
     volumes:
       - healayra_postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U healayra_user -d healayra"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  # Spring Boot REST API.
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: healayra-backend
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      # Inside Docker, PostgreSQL is reached through
+      # the service name "postgres", not localhost.
+      DB_URL: jdbc:postgresql://postgres:5432/healayra
+
+      DB_USERNAME: healayra_user
+      DB_PASSWORD: healayra_pass
+
+      # JWT_SECRET must be provided by the host environment.
+      JWT_SECRET: ${JWT_SECRET}
+
+      JWT_EXPIRATION: 86400000
+
+      CORS_ALLOWED_ORIGINS: http://localhost:5173
+
+    ports:
+      - "8080:8080"
+
 
 volumes:
   healayra_postgres_data:
