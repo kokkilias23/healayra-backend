@@ -353,10 +353,20 @@ export JWT_SECRET="$(openssl rand -base64 32)"
 
 ### Windows PowerShell
 
+Generate a random 256-bit Base64 secret:
+
 ```powershell
 $bytes = New-Object byte[] 32
-[System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
 $env:JWT_SECRET = [Convert]::ToBase64String($bytes)
+$rng.Dispose()
+```
+
+You can verify that the environment variable has been set with:
+
+```powershell
+$env:JWT_SECRET
 ```
 
 Do not commit production secrets to Git.
@@ -390,6 +400,18 @@ export JWT_SECRET="$(openssl rand -base64 32)"
 Then start the complete backend stack:
 
 ```bash
+docker compose up --build
+```
+
+### Windows PowerShell
+
+```powershell
+$bytes = New-Object byte[] 32
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
+$env:JWT_SECRET = [Convert]::ToBase64String($bytes)
+$rng.Dispose()
+
 docker compose up --build
 ```
 
@@ -461,8 +483,10 @@ export JWT_SECRET="$(openssl rand -base64 32)"
 
 ```powershell
 $bytes = New-Object byte[] 32
-[System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
 $env:JWT_SECRET = [Convert]::ToBase64String($bytes)
+$rng.Dispose()
 
 .\gradlew bootRun
 ```
