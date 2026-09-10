@@ -23,6 +23,11 @@ public interface AppointmentRepository
             AppointmentStatus status
     );
 
+    boolean existsByDoctorIdAndClientIdAndDeletedFalse(
+            Long doctorId,
+            Long clientId
+    );
+
     boolean existsByDoctorIdAndAppointmentTimeAndStatusInAndDeletedFalse(
             Long doctorId,
             LocalDateTime appointmentTime,

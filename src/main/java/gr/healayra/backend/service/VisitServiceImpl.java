@@ -7,6 +7,7 @@ import gr.healayra.backend.dto.visit.VisitReadOnlyDTO;
 import gr.healayra.backend.model.Client;
 import gr.healayra.backend.model.Doctor;
 import gr.healayra.backend.model.Visit;
+import gr.healayra.backend.repository.AppointmentRepository;
 import gr.healayra.backend.repository.ClientRepository;
 import gr.healayra.backend.repository.DoctorRepository;
 import gr.healayra.backend.repository.VisitRepository;
@@ -22,6 +23,7 @@ public class VisitServiceImpl implements IVisitService {
     private final VisitRepository visitRepository;
     private final DoctorRepository doctorRepository;
     private final ClientRepository clientRepository;
+    private final AppointmentRepository appointmentRepository;
 
     @Override
     public VisitReadOnlyDTO createVisit(
@@ -50,6 +52,21 @@ public class VisitServiceImpl implements IVisitService {
                                 "Client not found"
                         )
                 );
+
+        // A doctor can create a visit only for a client
+        // who already has an appointment with that doctor.
+        boolean belongsToDoctor =
+                appointmentRepository
+                        .existsByDoctorIdAndClientIdAndDeletedFalse(
+                                doctor.getId(),
+                                client.getId()
+                        );
+
+        if (!belongsToDoctor) {
+            throw new ForbiddenException(
+                    "You do not have permission to create a visit for this client"
+            );
+        }
 
         Visit visit = Visit.builder()
                 .doctor(doctor)
@@ -160,6 +177,7 @@ public class VisitServiceImpl implements IVisitService {
 
         visitRepository.save(visit);
     }
+
     private Doctor getDoctorByEmail(
             String doctorEmail
     ) {
