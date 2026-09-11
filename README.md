@@ -333,43 +333,31 @@ The PostgreSQL service also includes a health check so the backend waits until t
 
 ## Environment Variables
 
-The backend requires a JWT secret.
+The backend uses environment variables for configuration.
 
-The secret is **not stored directly in the repository**.
-
-The application expects:
+For local Docker development, an example environment file is included:
 
 ```text
-JWT_SECRET
+.env.example
 ```
 
-### Git Bash
-
-Generate a random Base64 secret:
+Create a local `.env` file by copying the example file:
 
 ```bash
-export JWT_SECRET="$(openssl rand -base64 32)"
+cp .env.example .env
 ```
 
-### Windows PowerShell
+The same file can also be copied manually through the IDE or file explorer.
 
-Generate a random 256-bit Base64 secret:
+The `.env` file is excluded from Git and must never be committed.
 
-```powershell
-$bytes = New-Object byte[] 32
-$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
-$rng.GetBytes($bytes)
-$env:JWT_SECRET = [Convert]::ToBase64String($bytes)
-$rng.Dispose()
+The local environment contains the JWT signing secret used by the backend:
+
+```env
+JWT_SECRET=...
 ```
 
-You can verify that the environment variable has been set with:
-
-```powershell
-$env:JWT_SECRET
-```
-
-Do not commit production secrets to Git.
+Docker Compose automatically reads the local `.env` file and provides the value to the backend container.
 
 Other supported environment variables include:
 
@@ -381,7 +369,45 @@ JWT_EXPIRATION
 CORS_ALLOWED_ORIGINS
 ```
 
-Docker Compose configures the database connection automatically for the backend container.
+Production secrets must never be committed to Git.
+
+For production environments, secrets should be provided through secure environment configuration or a dedicated secret-management service.
+
+---
+
+## Local Environment Files
+
+The repository contains:
+
+```text
+.env.example
+```
+
+This file acts as a template for local development.
+
+The actual local environment file:
+
+```text
+.env
+```
+
+is intentionally excluded from Git.
+
+Typical setup:
+
+```text
+.env.example
+      ↓
+copy
+      ↓
+.env
+      ↓
+Docker Compose
+      ↓
+Spring Boot
+```
+
+This allows every developer to use their own local configuration without storing private secrets inside the repository.
 
 ---
 
@@ -389,33 +415,19 @@ Docker Compose configures the database connection automatically for the backend 
 
 Make sure Docker Desktop is installed and running.
 
-First configure `JWT_SECRET`.
-
-### Git Bash
+First create the local environment file:
 
 ```bash
-export JWT_SECRET="$(openssl rand -base64 32)"
+cp .env.example .env
 ```
 
-Then start the complete backend stack:
+Then start the backend and PostgreSQL:
 
 ```bash
 docker compose up --build
 ```
 
-### Windows PowerShell
-
-```powershell
-$bytes = New-Object byte[] 32
-$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
-$rng.GetBytes($bytes)
-$env:JWT_SECRET = [Convert]::ToBase64String($bytes)
-$rng.Dispose()
-
-docker compose up --build
-```
-
-This builds the Spring Boot Docker image and starts both:
+Docker Compose builds and starts:
 
 ```text
 healayra-backend
@@ -438,6 +450,34 @@ OpenAPI JSON:
 
 ```text
 http://localhost:8080/v3/api-docs
+```
+
+---
+
+## Run Docker in Background
+
+The Docker environment can also run in detached mode:
+
+```bash
+docker compose up -d
+```
+
+To rebuild the backend image and run in the background:
+
+```bash
+docker compose up -d --build
+```
+
+Check running services with:
+
+```bash
+docker compose ps
+```
+
+View live logs with:
+
+```bash
+docker compose logs -f
 ```
 
 ---
@@ -470,25 +510,18 @@ Use `-v` only when you intentionally want to delete the Docker database data.
 
 The application can also be run directly with Gradle while PostgreSQL is available locally.
 
-Configure `JWT_SECRET` first.
+When running the backend outside Docker, the `JWT_SECRET` environment variable must be available to the Spring Boot process.
 
-### Git Bash
+It can be configured through:
+
+- IntelliJ IDEA Run Configuration
+- Operating-system environment variables
+- Terminal environment configuration
+
+Then run:
 
 ```bash
-export JWT_SECRET="$(openssl rand -base64 32)"
 ./gradlew bootRun
-```
-
-### Windows PowerShell
-
-```powershell
-$bytes = New-Object byte[] 32
-$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
-$rng.GetBytes($bytes)
-$env:JWT_SECRET = [Convert]::ToBase64String($bytes)
-$rng.Dispose()
-
-.\gradlew bootRun
 ```
 
 The REST API will be available at:
@@ -503,16 +536,8 @@ http://localhost:8080
 
 Run:
 
-### Git Bash
-
 ```bash
 ./gradlew clean build
-```
-
-### Windows PowerShell
-
-```powershell
-.\gradlew clean build
 ```
 
 A successful build should finish with:
@@ -710,8 +735,20 @@ The MVP includes:
 - CORS configuration
 - Jakarta request validation
 - Database-level double-booking protection
+- Externalized JWT configuration
+- Local secrets excluded from Git
 
 For a production healthcare environment, additional security, compliance and privacy hardening would be required.
+
+Possible production improvements include:
+
+- HttpOnly Secure authentication cookies
+- Refresh token support
+- Secret-management services
+- Stronger audit logging
+- Centralized monitoring
+- GDPR-oriented data controls
+- Infrastructure hardening
 
 ---
 
@@ -785,6 +822,42 @@ This keeps the runtime image separate from the full build environment.
 
 ---
 
+## Development Workflow
+
+A typical local backend development workflow is:
+
+```text
+Clone Repository
+      ↓
+Copy .env.example → .env
+      ↓
+Start Docker Desktop
+      ↓
+docker compose up --build
+      ↓
+PostgreSQL becomes healthy
+      ↓
+Spring Boot starts
+      ↓
+Flyway validates / applies migrations
+      ↓
+REST API available on localhost:8080
+```
+
+Useful Docker commands:
+
+```bash
+docker info
+docker ps
+docker compose up --build
+docker compose up -d
+docker compose ps
+docker compose logs -f
+docker compose down
+```
+
+---
+
 ## Future Improvements
 
 Possible future improvements include:
@@ -836,6 +909,8 @@ Implemented core features include:
 - Dockerized Spring Boot backend
 - Dockerized PostgreSQL database
 - Docker Compose full backend environment
+- Local `.env` configuration
+- `.env.example` development template
 
 ---
 
